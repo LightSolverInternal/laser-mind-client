@@ -1,0 +1,57 @@
+{
+  "family": "ls-heuristic-tests",
+  "taskRoleArn": "arn:aws:iam::541441380680:role/lightsolvercloud-ecs-task-execution",
+  "executionRoleArn": "arn:aws:iam::541441380680:role/lightsolvercloud-ecs-task-execution",
+  "networkMode": "bridge",
+  "containerDefinitions": [
+    {
+      "name": "ls-heuristic-tests",
+      "image": "541441380680.dkr.ecr.eu-central-1.amazonaws.com/ls-heuristic-tests:0.0.1",
+      "essential": true,
+      "environmentFiles": [],
+      "mountPoints": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-create-group": "true",
+          "awslogs-group": "/ecs/ls-heuristic-tests-stage",
+          "awslogs-region": "eu-central-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "secrets": [
+        {
+          "name": "LS_USER",
+          "valueFrom": "arn:aws:ssm:eu-central-1:541441380680:parameter/lightsolver-poc-dev/common/ls_user"
+        },
+        {
+          "name": "LS_PASS",
+          "valueFrom": "arn:aws:ssm:eu-central-1:541441380680:parameter/lightsolver-poc-dev/common/ls_password"
+        },
+        {
+          "name": "LS_API_RUN_URL",
+          "valueFrom": "arn:aws:ssm:eu-central-1:541441380680:parameter/lightsolver-poc-dev/common/ls_api_run_url"
+        },
+        {
+          "name": "LS_API_RUN_SECURED_URL",
+          "valueFrom": "arn:aws:ssm:eu-central-1:541441380680:parameter/lightsolver-poc-dev/common/ls_api_run_secured_url"
+        },
+        {
+          "name": "LS_AUTH_URL",
+          "valueFrom": "arn:aws:ssm:eu-central-1:541441380680:parameter/lightsolver-poc-dev/common/ls_auth_url"
+        },
+        {
+          "name": "LS_REQUEST_URL",
+          "valueFrom": "arn:aws:ssm:eu-central-1:541441380680:parameter/lightsolver-poc-dev/common/ls_request_url"
+        }
+      ]
+    }
+  ],
+  "memory": "2048",
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "cpu": "2048",
+  "volumes": [],
+  "placementConstraints": []
+}

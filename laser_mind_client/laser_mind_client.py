@@ -73,18 +73,23 @@ class LaserMind:
 
         - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
         - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
-        - `timeout` : (optional) the running timeout for the algorithm (default: 10).
+        - `timeout` : (optional) the running timeout for the algorithm, must be in the range 0.001 - 60 (default: 10).
         - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
 
         Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
         - `objval` : The objective value.
         - `solution` : The optimal solution found.
         """
+        if timeout < 0.001 or timeout > 60:
+            raise(ValueError("timeout value must be in the range 0.001 - 60"))
         command_name = SolveMode.SW_SOLVER.use_with(LaserMindCommands.SOLVER_QUBO_FULL)
         logging.info(f"{command_name} called.")
         commandInput = {}
 
         if matrixData is not None:
+            varCount = len(matrixData)
+            if varCount > 10000 or varCount < 10:
+                raise(ValueError("The total number of variables must be between 10-10000"))
             if type(matrixData) == numpy.ndarray:
                 if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
                     triuFlat = float_array_as_int(numpy_array_to_triu_flat(matrixData))
@@ -92,11 +97,19 @@ class LaserMind:
                 else:
                     triuFlat = numpy_array_to_triu_flat(matrixData)
             else:
+                validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
+                if numpy.array(validationArr).any():
+                    raise(ValueError("The input must be a square matrix"))
                 triuFlat = numpy_array_to_triu_flat(numpy.array(matrixData))
             commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
         elif edgeList is not None:
             if type(edgeList) == numpy.ndarray:
+                varCount = numpy.max(edgeList[:,0:2])
                 edgeList = edgeList.tolist()
+            else:
+                varCount = numpy.max(numpy.array(edgeList)[:,0:2])
+            if varCount > 10000 or varCount < 10:
+                raise(ValueError("The total number of variables must be between 10-10000"))
             commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
         else:
             raise Exception("You must provide either a QUBO matrix or a QUBO edge list")

@@ -1,0 +1,125 @@
+import os
+import logging
+import time
+import numpy
+
+from ls_api_clients import LSAPIClient
+from ls_packers import float_array_as_int
+from ls_packers import numpy_array_to_triu_flat
+from laser_mind_meta import SolveMode, MessageKeys, LaserMindCommands
+
+logging.basicConfig(
+    filename="laser-mind.log",
+    level=logging.INFO,
+    format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
+
+class LaserMind:
+    """
+    ## A client for accessing LightSolver's computaion capabilities via web services.
+    """
+    POLL_MAX_RETRIES = 100000
+    POLL_DELAY_SECS = 0.5
+
+    def __init__(self,
+                 username = None,
+                 password = None,
+                 states_per_call=3):
+        if username == None:
+            if 'LS_USER' in os.environ:
+                username = os.environ['LS_USER']
+            else:
+                raise Exception("the 'username' parameter cannot be None if the LS_USER environment variable is not set.")
+        if password == None:
+            if 'LS_PASS' in os.environ:
+                password = os.environ['LS_PASS']
+            else:
+                raise Exception("the 'password' parameter cannot be None if the LS_PASS environment variable is not set.")
+
+        self.states_per_call = states_per_call
+        print('LightSolver connection init started')
+        self.apiClient = LSAPIClient(username, password)
+        print('LightSolver connection init finished')
+
+    def get_solution_by_id(self, solutionId, timestamp):
+        """
+        Retrieve a previously requested solution from the LightSolver cloud.
+
+        - `solutionId` : the solution id received when requesting a solution.
+        - `timestamp` : the timestamp received when requesting a solution.
+        """
+        result = self.apiClient.SendResultRequest(solutionId, timestamp)
+        return result
+
+    def get_solution_sync(self, requestInfo):
+        """
+        Waits for a solution to be available and downloads it.
+
+        - `requestInfo` : a dictionary containing 'id' and 'reqTime' keys needed for retrieving the solution.
+        """
+        for try_num in range(1, self.POLL_MAX_RETRIES):
+            result = self.get_solution_by_id(requestInfo['id'], requestInfo['reqTime'])
+            if result != None:
+                result["receivedTime"] = requestInfo["receivedTime"]
+                logging.info(f"got solution for {requestInfo}, try #{try_num}")
+                return result
+            time.sleep((self.POLL_DELAY_SECS))
+
+        logging.warning(f"got timeout for {requestInfo}")
+        raise FileNotFoundError(f"Exceeded max retries when attempting to find {requestInfo['id']}")
+
+    def solve_qubo(self, matrixData = None, edgeList = None, timeout = 10, waitForSolution = True):
+        """
+        Solves a qubo problem using the optimized algorithm.
+
+        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
+        - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
+        - `timeout` : (optional) the running timeout for the algorithm, must be in the range 0.001 - 60 (default: 10).
+        - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
+
+        Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
+        - `objval` : The objective value.
+        - `solution` : The optimal solution found.
+        """
+        if timeout < 0.001 or timeout > 60:
+            raise(ValueError("timeout value must be in the range 0.001 - 60"))
+        command_name = SolveMode.SW_SOLVER.use_with(LaserMindCommands.SOLVER_QUBO_FULL)
+        logging.info(f"{command_name} called.")
+        commandInput = {}
+
+        if matrixData is not None:
+            varCount = len(matrixData)
+            if varCount > 10000 or varCount < 10:
+                raise(ValueError("The total number of variables must be between 10-10000"))
+            if type(matrixData) == numpy.ndarray:
+                if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
+                    triuFlat = float_array_as_int(numpy_array_to_triu_flat(matrixData))
+                    commandInput[MessageKeys.FLOAT_DATA_AS_INT] = True
+                else:
+                    triuFlat = numpy_array_to_triu_flat(matrixData)
+            else:
+                validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
+                if numpy.array(validationArr).any():
+                    raise(ValueError("The input must be a square matrix"))
+                triuFlat = numpy_array_to_triu_flat(numpy.array(matrixData))
+            commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
+        elif edgeList is not None:
+            if type(edgeList) == numpy.ndarray:
+                varCount = numpy.max(edgeList[:,0:2])
+                edgeList = edgeList.tolist()
+            else:
+                varCount = numpy.max(numpy.array(edgeList)[:,0:2])
+            if varCount > 10000 or varCount < 10:
+                raise(ValueError("The total number of variables must be between 10-10000"))
+            commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
+        else:
+            raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
+
+        commandInput[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
+
+        response = self.apiClient.SendCommandRequest(command_name, commandInput)
+        logging.info(f"got response {response}")
+        if not waitForSolution:
+            return response
+        result = self.get_solution_sync(response)
+        return result
+

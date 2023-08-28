@@ -3,19 +3,18 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "laser-mind-internal"
+name = "laser-mind-client"
 version = "0.1.1"
 authors = [
   { name="Assaf Kalinski", email="assaf@lightsolver.com" },
 ]
-description = "An internal client python API for accessing LightSolver's capabilities"
+description = "A client python API for accessing LightSolver's capabilities"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
   'numpy>=1.21.5',
   'laser-mind-meta>=0.2.19',
   'ls_api_clients>=0.4.6',
-  'problem-modeling>=0.3.18',
   'ls-packers>=0.2.0'
 ]
 classifiers = [
@@ -29,5 +28,5 @@ classifiers = [
 
 
 [tool.setuptools.packages.find]
-include = ["laser_mind_internal"]
+include = ["laser_mind_client"]
 

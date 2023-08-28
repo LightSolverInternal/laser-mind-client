@@ -67,11 +67,11 @@ class LaserMind:
         logging.warning(f"got timeout for {requestInfo}")
         raise FileNotFoundError(f"Exceeded max retries when attempting to find {requestInfo['id']}")
 
-    def solve_qubo_full(self, matrixData = None, edgeList = None, timeout = 10, waitForSolution = True):
+    def solve_qubo(self, matrixData = None, edgeList = None, timeout = 10, waitForSolution = True):
         """
         Solves a qubo problem using the optimized algorithm.
 
-        - `matrixData` : (optional) The matrix data of the target problem. if given, the edge list in the vortex parameters is ignored.
+        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
         - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
         - `timeout` : (optional) the running timeout for the algorithm (default: 10).
         - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
@@ -103,7 +103,7 @@ class LaserMind:
 
         commandInput[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
 
-        response = self.apiClient.SendCommandRequest(command_name, commandInput, self.secured)
+        response = self.apiClient.SendCommandRequest(command_name, commandInput)
         logging.info(f"got response {response}")
         if not waitForSolution:
             return response

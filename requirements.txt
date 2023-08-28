@@ -1,3 +1,4 @@
+numpy>=1.21.5
 laser-mind-meta>=0.2.19
 ls-api-clients>=0.4.6
 ls-packers>=0.2.0

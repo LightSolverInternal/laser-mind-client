@@ -71,10 +71,10 @@ The retrned value is a dictionary containing the calculated result along with ot
 from laser_mind_client import LaserMind
 
 # Create a mock QUBO problem
-quboProblemData = [
-    [5, -6.0, 0],
-    [-6.0, 3.0, -1.0],
-    [0, -1.0, 1.0]]
+quboProblemData = numpy.random.randint(-1, 2, (10,10))
+
+# symmetrize our matrix
+quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
 
 # Connect to the LaserMind cloud
@@ -85,9 +85,9 @@ res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
 print(res)
 ```
 
-### Describing a QUBO problem using an adjecency list
+### Describing a sparse QUBO problem using an adjecency list
 
-W e can also use an adjecency list (sparse matrix representation) as an input
+We can also use an adjecency list (sparse matrix representation) as an input
 to solve_qubo instead of a 2d arrray by using the ```edgeList``` parameter.
 
 note that when you use a list you cannot use set the ```matrixData``` parameter.
@@ -101,7 +101,7 @@ quboListData = [
     [1,2,-6],
     [2,2,3],
     [2,3,-1],
-    [3,3,1]]
+    [3,10,1]]
 
 
 # Connect to the LaserMind cloud

@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
   'numpy>=1.21.5',
-  'laser-mind-meta>=0.2.19',
+  'laser-mind-client-meta>=0.0.10',
   'ls_api_clients>=0.4.6',
   'ls-packers>=0.2.0'
 ]

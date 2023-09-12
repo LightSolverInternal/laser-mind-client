@@ -6,7 +6,7 @@ import numpy
 from ls_api_clients import LSAPIClient
 from ls_packers import float_array_as_int
 from ls_packers import numpy_array_to_triu_flat
-from laser_mind_meta import SolveMode, MessageKeys, LaserMindCommands
+from laser_mind_client_meta import MessageKeys
 
 logging.basicConfig(
     filename="laser-mind.log",
@@ -36,9 +36,9 @@ class LaserMind:
                 raise Exception("the 'password' parameter cannot be None if the LS_PASS environment variable is not set.")
 
         self.states_per_call = states_per_call
-        print('LightSolver connection init started')
+        logging.info('LightSolver connection init started')
         self.apiClient = LSAPIClient(username, password)
-        print('LightSolver connection init finished')
+        logging.info('LightSolver connection init finished')
 
     def get_solution_by_id(self, solutionId, timestamp):
         """
@@ -82,7 +82,7 @@ class LaserMind:
         """
         if timeout < 0.001 or timeout > 60:
             raise(ValueError("timeout value must be in the range 0.001 - 60"))
-        command_name = SolveMode.SW_SOLVER.use_with(LaserMindCommands.SOLVER_QUBO_FULL)
+        command_name = MessageKeys.QUBO_COMMAND_NAME
         logging.info(f"{command_name} called.")
         commandInput = {}
 

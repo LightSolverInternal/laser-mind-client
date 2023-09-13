@@ -58,10 +58,14 @@ Instead we include all of the needed packages to run a LaserMind project in this
 
 To install the laser-mind-client package we will need to tell pip to look for
 packages in the local folder they are located at:
-```pip install --find-links=<laser-mind-client repo folder>/packages laser-mind-client```
+```
+pip install --find-links=<laser-mind-client repo folder>/packages laser-mind-client
+```
 
 if using an environment based on this repository folder we can simply write:
-```pip install --find-links=./packages laser-mind-client```
+```
+pip install --find-links=./packages laser-mind-client
+```
 
 It is strongly recommended to use virtual environments when using this package.
 

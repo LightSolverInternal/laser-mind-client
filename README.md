@@ -51,9 +51,21 @@ Getting started is quite starightforward and requires a few one-time steps.
 
 ### Installation
 
-TBD
+The LaserMind product is currently in an Alpha phase, therefore the client package
+and other LightSolver Python packages are not yet published to the public PyPi (pip) servers.
+Instead we include all of the needed packages to run a LaserMind project in this repo's
+"packages" folder.
+
+To install the laser-mind-client package we will need to tell pip to look for
+packages in the local folder they are located at:
+```pip install --find-links=<laser-mind-client repo folder>/packages laser-mind-client```
+
+if using an environment based on this repository folder we can simply write:
+```pip install --find-links=./packages laser-mind-client```
 
 It is strongly recommended to use virtual environments when using this package.
+
+(Optional) set environment variables called LS_USER and LS_PASS to your credentials, this will allow for coding with LaserMind without providing credentials.
 
 ## Basic Usage
 LasrMind usage is prettry simple and fun, here are a few examples

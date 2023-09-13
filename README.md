@@ -62,7 +62,7 @@ packages in the local folder they are located at:
 pip install --find-links=<laser-mind-client repo folder>/packages laser-mind-client
 ```
 
-if using an environment based on this repository folder we can simply write:
+If using an environment based on this repository folder we can simply write:
 ```
 pip install --find-links=./packages laser-mind-client
 ```

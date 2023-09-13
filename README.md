@@ -46,8 +46,7 @@ Getting started is quite starightforward and requires a few one-time steps.
 
 ### Prerequisites
 - Have valid credetials for connecting to the LaserMind cloud.
-- Install our PIP Package
-
+- Have this repository cloned to your work environment.
 
 ### Installation
 

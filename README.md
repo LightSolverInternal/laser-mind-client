@@ -45,8 +45,12 @@ is busy with solving our QUBO problem.
 Getting started is quite starightforward and requires a few one-time steps.
 
 ### Prerequisites
-- Have valid credetials for connecting to the LaserMind cloud.
-- Have this repository cloned to your work environment.
+- Have valid credentials for connecting to the LaserMind cloud.
+- Have this repository cloned to your work environment:
+  ```
+  git clone https://github.com/LightSolverInternal/laser-mind-client
+  ```
+  The folder to which this repository is cloned will be reffered to as "laser-mind-client repo folder" in this document.
 
 ### Installation
 
@@ -54,6 +58,22 @@ The LaserMind product is currently in an Alpha phase, therefore the client packa
 and other LightSolver Python packages are not yet published to the public PyPi (pip) servers.
 Instead we include all of the needed packages to run a LaserMind project in this repo's
 "packages" folder.
+
+It is strongly recommended to use virtual environments when using this package.
+(Optional) Setup a virtual environemnt:
+This is how we create a virtual environment in a folder named ".venv" from a terminal window (cmd):
+Go to your project folder:
+```
+cd <your project folder>
+```
+Use Python to create a virtual environment:
+```
+py -3 -m venv .venv
+```
+Activate the new virtual environment:
+```
+.venv/scripts/activate
+```
 
 To install the laser-mind-client package we will need to tell pip to look for
 packages in the local folder they are located at:
@@ -66,9 +86,18 @@ If using an environment based on this repository folder we can simply write:
 pip install --find-links=./packages laser-mind-client
 ```
 
-It is strongly recommended to use virtual environments when using this package.
-
 (Optional) set environment variables called LS_USER and LS_PASS to your credentials, this will allow for coding with LaserMind without providing credentials.
+This can be done by running our ```env_setup.py``` script from your virtual environment.
+First start by running the commandline window as an administrator:
+![run cmd as admin](https://github.com/LightSolverInternal/laser-mind-client/blob/main/docs/cmd_admin.png)
+Go to your project folder:
+```
+cd <laser-mind-client repo folder>
+```
+Run the one-time environment setup script:
+```
+python .\setup_env.py
+```
 
 ## Basic Usage
 LasrMind usage is prettry simple and fun, here are a few examples

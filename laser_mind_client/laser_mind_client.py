@@ -73,7 +73,7 @@ class LaserMind:
 
         - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
         - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
-        - `timeout` : (optional) the running timeout for the algorithm, must be in the range 0.001 - 60 (default: 10).
+        - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
         - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
 
         Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:

@@ -92,7 +92,20 @@ First start by running the commandline window as an administrator:
 - Press on the windows key
 - Type "cmd" and click on "Run as administrator"
 ![run cmd as admin](https://github.com/LightSolverInternal/laser-mind-client/blob/main/docs/cmd_admin.png)
-Go to your project folder:
+Make sure you are working in your virtual environment:
+Go to your project folder (or to your laser-mind-client repo folder if your environment is setup there):
+```
+cd <your project folder>
+```
+Use Python to create a virtual environment:
+```
+py -3 -m venv .venv
+```
+Activate the new virtual environment:
+```
+.venv\Scripts\activate
+```
+Go to your laser-mind-client repo folder (if you are not alrerady there):
 ```
 cd <laser-mind-client repo folder>
 ```

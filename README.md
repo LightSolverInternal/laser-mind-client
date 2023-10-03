@@ -89,6 +89,8 @@ pip install --find-links=./packages laser-mind-client
 (Optional) set environment variables called LS_USER and LS_PASS to your credentials, this will allow for coding with LaserMind without providing credentials.
 This can be done by running our ```env_setup.py``` script from your virtual environment.
 First start by running the commandline window as an administrator:
+- Press on the windows key
+- Type "cmd" and click on "Run as administrator"
 ![run cmd as admin](https://github.com/LightSolverInternal/laser-mind-client/blob/main/docs/cmd_admin.png)
 Go to your project folder:
 ```

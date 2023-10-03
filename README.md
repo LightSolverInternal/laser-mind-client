@@ -127,6 +127,7 @@ the overall desired calculation time - ```timeout```.
 The retrned value is a dictionary containing the calculated result along with other information.
 
 ```python
+import numpy
 from laser_mind_client import LaserMind
 
 # Create a mock QUBO problem
@@ -134,7 +135,6 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 
 # symmetrize our matrix
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
-
 
 # Connect to the LaserMind cloud
 lsClient = LaserMind()

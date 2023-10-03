@@ -72,7 +72,7 @@ py -3 -m venv .venv
 ```
 Activate the new virtual environment:
 ```
-.venv/scripts/activate
+.venv\Scripts\activate
 ```
 
 To install the laser-mind-client package we will need to tell pip to look for

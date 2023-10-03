@@ -114,6 +114,8 @@ Run the one-time environment setup script:
 python .\setup_env.py
 ```
 
+If this setup fails, please contact LightSolver administrators for troubleshooting connection issues.
+
 ## Basic Usage
 LasrMind usage is prettry simple and fun, here are a few examples
 

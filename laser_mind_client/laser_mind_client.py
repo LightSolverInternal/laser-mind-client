@@ -13,6 +13,16 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
+def symmetrize(matrix):
+        """
+        Symmetrizes a given matrix in numpy array form
+        """
+        if (matrix == matrix.T).all():
+        # do nothing if the matrix is already symmetric
+            return matrix
+        result = (matrix + matrix.T) * 0.5
+        return result
+
 class LaserMind:
     """
     ## A client for accessing LightSolver's computaion capabilities via web services.
@@ -67,23 +77,7 @@ class LaserMind:
         logging.warning(f"got timeout for {requestInfo}")
         raise FileNotFoundError(f"Exceeded max retries when attempting to find {requestInfo['id']}")
 
-    def solve_qubo(self, matrixData = None, edgeList = None, timeout = 10, waitForSolution = True):
-        """
-        Solves a qubo problem using the optimized algorithm.
-
-        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
-        - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
-        - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
-        - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
-
-        Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
-        - `objval` : The objective value.
-        - `solution` : The optimal solution found.
-        """
-        if timeout < 0.001 or timeout > 60:
-            raise(ValueError("timeout value must be in the range 0.001 - 60"))
-        command_name = MessageKeys.QUBO_COMMAND_NAME
-        logging.info(f"{command_name} called.")
+    def make_command_input(self, matrixData = None, edgeList = None, timeout = 10):
         commandInput = {}
 
         if matrixData is not None:
@@ -91,6 +85,7 @@ class LaserMind:
             if varCount > 10000 or varCount < 10:
                 raise(ValueError("The total number of variables must be between 10-10000"))
             if type(matrixData) == numpy.ndarray:
+                matrixData = symmetrize(matrixData)
                 if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
                     triuFlat = float_array_as_int(numpy_array_to_triu_flat(matrixData))
                     commandInput[MessageKeys.FLOAT_DATA_AS_INT] = True
@@ -100,7 +95,7 @@ class LaserMind:
                 validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
                 if numpy.array(validationArr).any():
                     raise(ValueError("The input must be a square matrix"))
-                triuFlat = numpy_array_to_triu_flat(numpy.array(matrixData))
+                triuFlat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrixData)))
             commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
         elif edgeList is not None:
             if type(edgeList) == numpy.ndarray:
@@ -115,8 +110,42 @@ class LaserMind:
             raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
 
         commandInput[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
+        return commandInput, int(varCount)
 
-        response = self.apiClient.SendCommandRequest(command_name, commandInput)
+    def upload_qubo_input(self, matrixData = None, edgeList = None, timeout = 10, inputPath = None):
+        command_name = MessageKeys.QUBO_COMMAND_NAME
+        commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
+
+        iid = self.apiClient.upload_command_input(command_name, commandInput, inputPath)
+        return iid, varCount
+
+    def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
+        """
+        Solves a qubo problem using the optimized algorithm.
+
+        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
+        - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
+        - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
+        - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
+
+        Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
+        - `objval` : The objective value.
+        - `solution` : The optimal solution found.
+        """
+        command_name = MessageKeys.QUBO_COMMAND_NAME
+        if inputPath == None:
+            iid, varCount = self.upload_qubo_input(matrixData, edgeList, timeout)
+        else:
+            iid = inputPath
+            varCount = 10000
+
+        requestInput = {
+            MessageKeys.QUBO_INPUT_PATH : iid,
+            MessageKeys.ALGO_RUN_TIMEOUT : timeout,
+            MessageKeys.VAR_COUNT_KEY : varCount
+            }
+
+        response = self.apiClient.SendCommandRequest(command_name, requestInput)
         logging.info(f"got response {response}")
         if not waitForSolution:
             return response

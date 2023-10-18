@@ -78,6 +78,9 @@ class LaserMind:
         raise FileNotFoundError(f"Exceeded max retries when attempting to find {requestInfo['id']}")
 
     def make_command_input(self, matrixData = None, edgeList = None, timeout = 10):
+        """
+        Creates the message payload for a request input.
+        """
         commandInput = {}
 
         if matrixData is not None:
@@ -113,6 +116,19 @@ class LaserMind:
         return commandInput, int(varCount)
 
     def upload_qubo_input(self, matrixData = None, edgeList = None, timeout = 10, inputPath = None):
+        """
+        Uploads the given input to the lightsolver cloud for later processing.
+
+        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
+        - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
+        - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
+        - `inputPath` : (optional) The the path to a pre-uploaded input file if not given a random string is used returned.
+
+        Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
+        - `iid` : The id of the uploaded file.
+        - `varCount` : The amount number of variables of the problem.
+
+        """
         command_name = MessageKeys.QUBO_COMMAND_NAME
         commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
 
@@ -125,6 +141,7 @@ class LaserMind:
 
         - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
         - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
+        - `inputPath` : (optional) The the path to a pre-uploaded input file, the upload can be done using the upload_qubo_input() method of this class.
         - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
         - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
 

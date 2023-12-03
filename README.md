@@ -117,7 +117,7 @@ python .\setup_env.py
 If this setup fails, please contact LightSolver administrators for troubleshooting connection issues.
 
 ## Basic Usage
-LasrMind usage is prettry simple and fun, here are a few examples
+LaserMind usage is prettry simple and fun, here are a few examples
 
 ### Simple QUBO matrix
 In this basic example, we create a small matrix representing a QUBO problem

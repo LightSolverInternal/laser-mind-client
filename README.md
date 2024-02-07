@@ -13,7 +13,7 @@ This package is designated for internal access to features during the developmen
 The `solve_qubo` function handles the computation of QUBO problems, either represented by a 2D array (matrix) or by an adjacency list. For code samples, see the **Usage** section.
 
 #### Input Matrix Validity
-- The matrix must be square.        
+- The matrix must be square.
 - The matrix supports int or float cell values.
 
 #### Return Value
@@ -30,21 +30,83 @@ A dictionary with the following fields:
 - **Synchronous Mode (Default):** The `waitForSolution` flag is set to **True** by default. The function blocks operations until a result is received.
 - **Asynchronous Mode:** Set `waitForSolution` to **False**. The function returns immediately with a token object, allowing the script to continue while the server processes the QUBO problem.
 
-## Prerequisites
+## Setting Up
+
+### Prerequisites
 - Valid credentials for connecting to the LightSolver Cloud.
 - This repository cloned to your work environment.
+  ```
+  git clone https://github.com/LightSolverInternal/laser-mind-client
+  ```
 - Python 3.10.
 - Operating System: Linux or Windows. Tested on Ubuntu 20.04 and Windows 11.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client.
 
+### Installation
+
+
+1. Navigate to the root folder of the project in which you will use the lightsolver client:
+    ```
+    cd <your project folder>
+    ```
+
+#### Windows
+2. (Recommended) Create a virtual environment:
+    ```
+    py -3 -m venv .venv
+    ```
+3. (Recommended) Activate the new virtual environment:
+    ```
+    .venv\Scripts\activate
+    ```
+4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online.
+    ```
+    pip install  --no-cache-dir --no-index --find-links=<laser-mind-client folder>\packages_win laser-mind-client
+    ```
+    Replace <laser-mind-client folder> with the root directory of this repository cloned to your machine.
+
+5. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
+    Press the windows key, type "cmd", right click on the result and select "Run as Administrator."
+    ![run cmd as admin](https://github.com/LightSolverInternal/laser-mind-client/blob/main/docs/cmd_admin.png)
+    ```
+    cd <laser-mind-client folder>
+    py -3 setup_env.py
+    ```
+    Replace <laser-mind-client folder> with the root directory of this repository cloned to your machine.
+
+#### Ubuntu
+2. (Recommended) Create a virtual environment:
+    ```
+    python3 -m venv .venv
+    ```
+3. (Recommended) Activate the new virtual environment:
+    ```
+    chmod 755  .venv/bin/activate
+    source .venv/bin/activate
+    ```
+4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online.
+    ```
+    pip install  --no-cache-dir --no-index --find-links=<laser-mind-client folder>/packages laser-mind-client
+    ```
+    Replace <laser-mind-client folder> with the root directory of this repository cloned to your machine.
+5. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
+    ```
+    cd <laser-mind-client folder>
+    sudo python3 setup_env.py
+    ```
+    Replace <laser-mind-client folder> with the root directory of this repository cloned to your machine.
+
+
+Please contact LightSolver officials for assistance with setup or connection issues at support@lightsolver.com.
+
 ## Authentication
-Initialization of the `LaserMind` class automatically forms a secure and authenticated connection with the LightSolver  Cloud.
+Initialization of the `LaserMind` class automatically forms a secure and authenticated connection with the LightSolver Cloud.
 Subsequent calls by the same user are similarly secure and authenticated.
 
 ## Usage
 To begin solving any QUBO problem:
-1. Create an instance of the ```LaserMind``` class. This class represents the client that requests solutions from the LightSolver Cloud. 
-2. To solve a problem, call the ```solve_qubo``` function using either a matrix or an adjacency list.
+1. Create an instance of the ```LaserMind``` class. This class represents the client that requests solutions from the LightSolver Cloud.
+2. Call the ```solve_qubo``` function using either a matrix or an adjacency list.
 **Note:** You may either provide a value for ```matrixData``` or for ```edgeList```, but not both.
 
 ### Solve QUBO Matrix Example
@@ -72,7 +134,7 @@ print(res)
 ```
 
 ### Solve QUBO Adjacency List Example
-This example describes a QUBO problem using an adjacency list. This is useful for sparse matrices. 
+This example describes a QUBO problem using an adjacency list. This is useful for sparse matrices.
 The `solve_qubo` function is used with the following parameters:
 - ```edgeList```: The adjacency list representing the QUBO problem.
 - ```timeout```: The required time limit for the calculation in seconds.
@@ -98,8 +160,8 @@ print(res)
 ```
 
 ### Solve QUBO Matrix using Asynchronous Flow
-This example demonstratse how to solve a QUBO problem asynchronously using the LightSolver Platform Client. 
-Begin by creating a matrix to represent your QUBO problem. 
+This example demonstratse how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
+Begin by creating a matrix to represent your QUBO problem.
 The `solve_qubo` function is used with the following parameters:
    - `matrixData`: A 2D array representing the QUBO problem.
    - `timeout`: The desired time limit for the calculation in seconds.

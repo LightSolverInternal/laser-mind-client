@@ -193,4 +193,3 @@ res = lsClient.get_solution_sync(requestToken)
 
 print(res)
 ```
-

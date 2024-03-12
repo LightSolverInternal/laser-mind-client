@@ -61,7 +61,7 @@ For further assistance  with setup or connection issues, contact support@lightso
     ```
 4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
     ```
-    pip install --no-cache-dir --no-index --find-links=<laser-mind-client folder>\packages_win laser-mind-client
+    pip install --no-cache-dir --find-links=<laser-mind-client folder>\packages_win laser-mind-client
     ```
     Replace <laser-mind-client folder> with the root directory of the repository cloned to your machine.
 
@@ -90,7 +90,7 @@ For further assistance  with setup or connection issues, contact support@lightso
     ```
 4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
     ```
-    pip install  --no-cache-dir --no-index --find-links=<laser-mind-client folder>/packages laser-mind-client
+    pip install --no-cache-dir --find-links=<laser-mind-client folder>/packages laser-mind-client
     ```
     Replace <laser-mind-client folder> with the root directory of the repository cloned to your machine.
 5. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.

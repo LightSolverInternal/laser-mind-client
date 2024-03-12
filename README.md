@@ -38,6 +38,7 @@ A dictionary with the following fields:
   ```
   git clone https://github.com/LightSolverInternal/laser-mind-client
   ```
+  Or downloaded using the "Download Zip" button and unzipped.
 - Python 3.10.
 - Operating System: Linux or Windows. Tested on Ubuntu 20.04 and Windows 11.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client.

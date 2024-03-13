@@ -4,8 +4,8 @@ from laser_mind_client import LaserMind
 
 print("This is a setup script for the laser-mind-client")
 
-ls_user = input("Username:")
-ls_pass = getpass.getpass("Password:")
+ls_user = input("Email: ")
+ls_pass = getpass.getpass("Password: ")
 
 try:
     lsClient = LaserMind(ls_user, ls_pass)

@@ -129,10 +129,9 @@ class LaserMind:
         - `varCount` : The amount number of variables of the problem.
 
         """
-        command_name = MessageKeys.QUBO_COMMAND_NAME
         commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
 
-        iid = self.apiClient.upload_command_input(command_name, commandInput, inputPath)
+        iid = self.apiClient.upload_command_input(commandInput, inputPath)
         return iid, varCount
 
     def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):

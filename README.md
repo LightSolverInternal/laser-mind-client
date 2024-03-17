@@ -53,39 +53,39 @@ For further assistance  with setup or connection issues, contact support@lightso
 
 3. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
     Run the following command:
-        ```sh
-        python setup_env.py
-        ```
+```sh
+python setup_env.py
+```
 
 2. (Recommended) Create a virtual environment:
-        ```sh
-        python -m venv .venv
-        ```
+```sh
+python -m venv .venv
+```
 
 3. (Recommended) Activate the new virtual environment:
-        ```sh
-        .venv\Scripts\activate
-        ```
+```sh
+.venv\Scripts\activate
+```
 
 4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
-        ```sh
-        pip install --no-cache-dir --find-links=.\packages_win laser-mind-client
-        ```
+```sh
+pip install --no-cache-dir --find-links=.\packages_win laser-mind-client
+```
 
 5. (Recommended) Test LightSolver credentials
     Run the following command:
-        ```sh
-        python test_env.py
-        ```
+```sh
+python test_env.py
+```
     if test credentials failed , please  reinstall credentials using following commands:
     - Exit virtual environment , by running :
-        ```sh
-        deactivate
-        ```
+```sh
+deactivate
+```
     - Run the following command:
-        ```sh
-        python setup_env.py
-        ```
+```sh
+python setup_env.py
+```
 
 
 

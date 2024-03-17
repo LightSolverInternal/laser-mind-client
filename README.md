@@ -34,14 +34,10 @@ A dictionary with the following fields:
 
 ### Prerequisites
 - Valid credentials for connecting to the LightSolver Cloud.
-- This repository cloned to your work environment.
-  ```
-  git clone https://github.com/LightSolverInternal/laser-mind-client
-  ```
-  Or downloaded using the "Download Zip" button and unzipped.
+- LightSolver Client code project - please use this link to download.
 - Python 3.10.
 - Operating System: Linux or Windows. Tested on Ubuntu 20.04 and Windows 11.
-- Highly Recommended: Use a virtual environment before installing laser-mind-client.
+- Highly Recommended: Use a virtual environment before installing laser-mind-client (Please see detailed action further below under the relevant OS).
 
 ### Installation
 Complete the installation on Windows or Ubuntu as described below.
@@ -49,9 +45,12 @@ For further assistance  with setup or connection issues, contact support@lightso
 
 #### Windows
 1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
-2. Change to the laser-mind-client folder
+2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
+    ```
+    cd <your project folder>
+    ```
 
-3. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
+3. (Recommended) Set the LightSolver credentials using environment variables (will remove the need to provide credentials for every usage).
     Run the following command:
 ```sh
     python setup_env.py
@@ -90,9 +89,12 @@ For further assistance  with setup or connection issues, contact support@lightso
 
 #### Ubuntu
 1. Open new terminal window
-2. Change to the laser-mind-client folder
+2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
+    ```
+    cd <your project folder>
+    ```
 
-3. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
+3. (Recommended) Set the LightSolver credentials using environment variables (will remove the need to provide credentials for every usage).
     Run the following command:
 ```sh
     python3 setup_env.py

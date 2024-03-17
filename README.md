@@ -77,6 +77,17 @@ For further assistance  with setup or connection issues, contact support@lightso
         ```
         python test_env.py
         ```
+    if test credentials failed , please  reinstall credentials using following commands:
+    - Exit virtual environment , by running :
+        ```
+        deactivate
+        ```
+    - Run the following command:
+        ```
+        python setup_env.py
+        ```
+
+
 
 
 

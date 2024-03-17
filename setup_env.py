@@ -2,21 +2,11 @@ import getpass
 import platform
 import subprocess
 import os
-from laser_mind_client import LaserMind
 
-print("This is a setup script for the laser-mind-client")
+print("This is Setup Environment  script for the laser-mind-client")
 
 ls_user = input("Email: ")
 ls_pass = getpass.getpass("Password: ")
-
-try:
-    lsClient = LaserMind(ls_user, ls_pass)
-except Exception as ex:
-    print("Error logging-in to the LightSolver cloud, could be due to wrong credentials.")
-    print("Setup incomplete.")
-    exit(1)
-
-print("Setting environment variables")
 
 try:
     # Change temporarily so user doens't have to respawn the terminal
@@ -38,4 +28,4 @@ except Exception as ex:
     print("Setup incomplete.")
     exit(1)
 
-print("Setup Complete")
+print("Setup environment Complete")

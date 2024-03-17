@@ -48,32 +48,37 @@ Complete the installation on Windows or Ubuntu as described below.
 For further assistance  with setup or connection issues, contact support@lightsolver.com.
 
 #### Windows
-1. Navigate to the root folder of the project in which you will use the LightSolver Platform Client:
-    ```
-    cd <your project folder>
-    ```
-2. (Recommended) Create a virtual environment:
-    ```
-    py -3 -m venv .venv
-    ```
-3. (Recommended) Activate the new virtual environment:
-    ```
-    .venv\Scripts\activate
-    ```
-4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
-    ```
-    pip install --no-cache-dir --find-links=<laser-mind-client folder>\packages laser-mind-client
-    ```
-    Replace <laser-mind-client folder> with the root directory of the repository cloned to your machine.
+1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
+2. Change to the laser-mind-client folder
 
-5. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
-    1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
-    2. Change to the laser-mind-client folder and run the following command:
+3. (Recommended) Configure the LightSolver credentials using environment variables. With these configured, the user does not need to provide credentials for every usage.
+    Run the following command:
         ```
-        cd <laser-mind-client folder>
-        py -3 setup_env.py
+        python setup_env.py
         ```
-        Replace <laser-mind-client folder> with the root directory of the repository cloned to your machine.
+
+2. (Recommended) Create a virtual environment:
+        ```
+        python -m venv .venv
+        ```
+
+3. (Recommended) Activate the new virtual environment:
+        ```
+        .venv\Scripts\activate
+        ```
+
+4. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
+        ```
+        pip install --no-cache-dir --find-links=.\packages_win laser-mind-client
+        ```
+
+5. (Recommended) Test LightSolver credentials
+    Run the following command:
+        ```
+        python test_env.py
+        ```
+
+
 
 #### Ubuntu
 1. Navigate to the root folder of the project in which you will use the LightSolver Platform Client:

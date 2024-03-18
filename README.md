@@ -98,6 +98,7 @@ For further assistance  with setup or connection issues, contact support@lightso
     Run the following command:
 ```sh
     python3 setup_env.py
+    source ~/.bash_profile
 ```
 
 4. (Recommended) Create a virtual environment:
@@ -129,6 +130,7 @@ For further assistance  with setup or connection issues, contact support@lightso
     - Run the following command:
 ```sh
     python3 setup_env.py
+    source ~/.bash_profile
 ```
 
 ## Authentication

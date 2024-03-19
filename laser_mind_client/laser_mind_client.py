@@ -44,11 +44,13 @@ class LaserMind:
                 password = os.environ['LS_PASS']
             else:
                 raise Exception("the 'password' parameter cannot be None if the LS_PASS environment variable is not set.")
-
-        self.states_per_call = states_per_call
-        logging.info('LightSolver connection init started')
-        self.apiClient = LSAPIClient(username, password)
-        logging.info('LightSolver connection init finished')
+        try:
+            self.states_per_call = states_per_call
+            logging.info('LightSolver connection init started')
+            self.apiClient = LSAPIClient(username, password)
+            logging.info('LightSolver connection init finished')
+        except Exception as e:
+            raise Exception("!!!!! No access to LightSolver Cloud !!!!!")
 
     def get_solution_by_id(self, solutionId, timestamp):
         """

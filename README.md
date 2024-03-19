@@ -37,14 +37,14 @@ A dictionary with the following fields:
 - LightSolver Client code project (link to download provided via mail).
     - Verify installation of software for unzipping the LightSolver Client.
 - Python 3.10 ([Download Here](https://www.python.org/downloads/release/python-31011/)).
-    - Select the appropriate Mac/Windows version at the bottom.     
-    - Make sure to switch on the "Add to Path" option in the install wizard. 
+    - Select the appropriate Mac/Windows version at the bottom.
+    - Make sure to switch on the "Add to Path" option in the install wizard.
 - Operating System: Mac or Windows. Tested on MacOS and Windows 11.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client (Please see detailed action further below under the relevant OS).
 
 ### Installation
 Complete the installation on Windows or Ubuntu as described below.
-For further assistance  with setup or connection issues, contact support@lightsolver.com.
+For further assistance with setup or connection issues, contact support@lightsolver.com.
 
 #### Windows
 1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
@@ -82,7 +82,7 @@ For further assistance  with setup or connection issues, contact support@lightso
 8. (Recommended) Test - using the inline project test examples
    Run the following command:
 ```sh
-    python ./tests/test_solve_qubo_matrix.py  
+    python ./tests/test_solve_qubo_matrix.py
 ```
 
 
@@ -125,7 +125,7 @@ For further assistance  with setup or connection issues, contact support@lightso
 8. (Recommended) Test - using the inline project test examples
    Run the following command:
 ```sh
-    python3 ./tests/test_solve_qubo_matrix.py  
+    python3 ./tests/test_solve_qubo_matrix.py
 ```
 
 ***
@@ -190,7 +190,7 @@ print(res)
 ```
 
 ### Solve QUBO Matrix using Asynchronous Flow
-This example demonstratse how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
+This example demonstrates how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
 Begin by creating a matrix to represent your QUBO problem.
 The `solve_qubo` function is used with the following parameters:
    - `matrixData`: A 2D array representing the QUBO problem.

@@ -50,7 +50,7 @@ class LaserMind:
             self.apiClient = LSAPIClient(username, password)
             logging.info('LightSolver connection init finished')
         except Exception as e:
-            raise Exception("!!!!! No access to LightSolver Cloud !!!!!")
+            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
 
     def get_solution_by_id(self, solutionId, timestamp):
         """
@@ -131,10 +131,13 @@ class LaserMind:
         - `varCount` : The amount number of variables of the problem.
 
         """
-        commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
+        try:
+            commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
 
-        iid = self.apiClient.upload_command_input(commandInput, inputPath)
-        return iid, varCount
+            iid = self.apiClient.upload_command_input(commandInput, inputPath)
+            return iid, varCount
+        except Exception as e:
+            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
 
     def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
         """
@@ -162,11 +165,13 @@ class LaserMind:
             MessageKeys.ALGO_RUN_TIMEOUT : timeout,
             MessageKeys.VAR_COUNT_KEY : varCount
             }
-
-        response = self.apiClient.SendCommandRequest(command_name, requestInput)
-        logging.info(f"got response {response}")
-        if not waitForSolution:
-            return response
-        result = self.get_solution_sync(response)
-        return result
+        try:
+            response = self.apiClient.SendCommandRequest(command_name, requestInput)
+            logging.info(f"got response {response}")
+            if not waitForSolution:
+                return response
+            result = self.get_solution_sync(response)
+            return result
+        except Exception as e:
+            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
 

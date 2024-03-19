@@ -33,10 +33,13 @@ A dictionary with the following fields:
 ## Setting Up
 
 ### Prerequisites
-- Valid credentials for connecting to the LightSolver Cloud.
-- LightSolver Client code project - please use this link to download.
-- Python 3.10.
-- Operating System: Linux or Windows. Tested on Ubuntu 20.04 and Windows 11.
+- Valid credentials for connecting to the LightSolver Cloud (link to registration provided via mail).
+- LightSolver Client code project (link to download provided via mail).
+    - Verify installation of software for unzipping the LightSolver Client.
+- Python 3.10 ([Download Here](https://www.python.org/downloads/release/python-31011/)).
+    - Select the appropriate Mac/Windows version at the bottom.     
+    - Make sure to switch on the "Add to Path" option in the install wizard. 
+- Operating System: Mac or Windows. Tested on MacOS and Windows 11.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client (Please see detailed action further below under the relevant OS).
 
 ### Installation
@@ -76,18 +79,14 @@ For further assistance  with setup or connection issues, contact support@lightso
 ```sh
     python test_env.py
 ```
-    if test credentials failed , please  reinstall credentials using following commands:
-    - Exit virtual environment , by running :
+8. (Recommended) Test - using the inline project test examples
+   Run the following command:
 ```sh
-    deactivate
-```
-    - Run the following command:
-```sh
-    python setup_env.py
+    python ./tests/test_solve_qubo_matrix.py  
 ```
 
 
-#### Ubuntu
+#### Mac
 1. Open new terminal window
 2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
     ```
@@ -122,17 +121,14 @@ For further assistance  with setup or connection issues, contact support@lightso
 ```sh
     python3 test_env.py
 ```
-    if test credentials failed , please  reinstall credentials using following commands:
-    - Exit virtual environment , by running :
+
+8. (Recommended) Test - using the inline project test examples
+   Run the following command:
 ```sh
-    deactivate
-```
-    - Run the following command:
-```sh
-    python3 setup_env.py
-    source ~/.bash_profile
+    python3 ./tests/test_solve_qubo_matrix.py  
 ```
 
+***
 ## Authentication
 Initialization of the `LaserMind` class automatically forms a secure and authenticated connection with the LightSolver Cloud.
 Subsequent calls by the same user are similarly secure and authenticated.

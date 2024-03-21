@@ -49,8 +49,10 @@ class LaserMind:
             logging.info('LightSolver connection init started')
             self.apiClient = LSAPIClient(username, password)
             logging.info('LightSolver connection init finished')
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 
     def get_solution_by_id(self, solutionId, timestamp):
         """
@@ -136,8 +138,10 @@ class LaserMind:
 
             iid = self.apiClient.upload_command_input(commandInput, inputPath)
             return iid, varCount
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 
     def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
         """
@@ -172,6 +176,8 @@ class LaserMind:
                 return response
             result = self.get_solution_sync(response)
             return result
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 

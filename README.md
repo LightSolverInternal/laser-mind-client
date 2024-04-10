@@ -7,7 +7,7 @@ This package is designated for internal access to features during the developmen
 ## Features
 - **QUBO Problem Solving:** The `solve_qubo` function accepts a QUBO problem, represented either as a 2D array (matrix) or an adjacency list, and returns the solution.
 - **Synchronous and Asynchronous Operation:** Users can choose between blocking (synchronous) and non-blocking (asynchronous) modes for QUBO problem solving.
-- **Flexible Installation:** Compatible with both Windows and Ubuntu systems.
+- **Flexible Installation:** Compatible with both Windows and MacOS systems.
 
 ### Solve QUBO
 The `solve_qubo` function handles the computation of QUBO problems, either represented by a 2D array (matrix) or by an adjacency list. For code samples, see the **Usage** section.
@@ -33,17 +33,17 @@ A dictionary with the following fields:
 ## Setting Up
 
 ### Prerequisites
-- Valid credentials for connecting to the LightSolver Cloud (link to registration provided via mail).
-- LightSolver Client code project (link to download provided via mail).
+- Operating System: MacOS or Windows 11.
+- Valid credentials for connecting to the LightSolver Cloud ([Registration](https://id.lightsolver.com/signin/register)).
+- LightSolver Client code project (provided separately).
     - Verify installation of software for unzipping the LightSolver Client.
-- Python 3.10 ([Download Here](https://www.python.org/downloads/release/python-31011/)).
-    - Select the appropriate Mac/Windows version at the bottom.
-    - Make sure to switch on the "Add to Path" option in the install wizard.
-- Operating System: Mac or Windows. Tested on MacOS and Windows 11.
+- Python 3.10 or higher ([Download Here](https://www.python.org/downloads/release/python-31011/)).
+    - Select the appropriate MacOS/Windows version at the bottom.
+    - Note: for Windows installation, switch on the "Add to Path" option in the wizard.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client (Please see detailed action further below under the relevant OS).
 
 ### Installation
-Complete the installation on Windows or Ubuntu as described below.
+Complete the installation on Windows or MacOS as described below.
 For further assistance with setup or connection issues, contact support@lightsolver.com.
 
 #### Windows
@@ -86,7 +86,7 @@ For further assistance with setup or connection issues, contact support@lightsol
 ```
 
 
-#### Mac
+#### MacOS
 1. Open new terminal window
 2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
     ```

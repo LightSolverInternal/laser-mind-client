@@ -2,6 +2,7 @@ import os
 import logging
 import time
 import numpy
+import requests
 
 from ls_api_clients import LSAPIClient
 from ls_packers import float_array_as_int

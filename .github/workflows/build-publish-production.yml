@@ -1,14 +1,14 @@
-name: Build Python packages [Production]
+name: Build and Publish Python packages [PyPi]
 run-name: Build laser-mind-client Python package by @${{ github.actor }}
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - production
+      - pypi
   pull_request:
     branches:
-      - production
+      - pypi
 
 jobs:
   checkout:
@@ -34,6 +34,8 @@ jobs:
       CODE_ARTIFACT_REPOSITORY_NAME: "general-pypi-repo"
       CODE_ARTIFACT_DOMAIN_NAME: "ls-prod"
       AWS_ACCOUNT_OWNER_ID: "541441380680"
+    permissions:
+      id-token: write 
 
     steps:
       - name: Install Python
@@ -48,12 +50,13 @@ jobs:
           github_token: ${{ secrets.TOKEN}}
           default_bump: "minor"
 
-      - name: Build and Upload Python package
-        uses: ./reusable-actions/build-python-package
-        id: python-build
+      - name: Get PYPI_TOKEN form AWS SSM
+        uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.3.2
         with:
-          aws-account-owner-id: ${{ env.AWS_ACCOUNT_OWNER_ID }}
-          aws-account-region: ${{ env.AWS_REGION }}
-          code-artifact-domain-name: ${{ env.CODE_ARTIFACT_DOMAIN_NAME }}
-          code-artifact-repository-name: ${{ env.CODE_ARTIFACT_REPOSITORY_NAME }}
-          python-install-requirements: "false"
+          ssm-path: /ls/pypi/token #will get as PYPI_TOKEN
+
+      - name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: $PYPI_TOKEN
+          repository-url: https://test.pypi.org/laser-mind-client/

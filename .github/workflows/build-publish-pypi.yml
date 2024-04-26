@@ -75,4 +75,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: $PYPI_TOKEN
-          repository-url: https://test.pypi.org/laser-mind-client/
+          repository-url: https://pypi.org/laser-mind-client/

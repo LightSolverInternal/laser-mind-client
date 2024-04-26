@@ -1,16 +1,16 @@
 name: Build and Publish Python packages [PyPi]
 run-name: Build laser-mind-client Python package by @${{ github.actor }}
 
-# on:
-#   workflow_dispatch:
-#   push:
-#     branches:
-#       - pypi
-#   pull_request:
-#     branches:
-#       - pypi
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - pypi
+  pull_request:
+    branches:
+      - pypi
 
-on: [push]
+# on: [push]
 
 jobs:
   checkout:

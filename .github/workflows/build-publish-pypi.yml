@@ -45,12 +45,12 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Tag and Set version
-        id: tag-set-version
-        uses: ./reusable-actions/tag-set-python-package-version
-        with:
-          github_token: ${{ secrets.TOKEN}}
-          default_bump: "minor"
+      # - name: Tag and Set version
+      #   id: tag-set-version
+      #   uses: ./reusable-actions/tag-set-python-package-version
+      #   with:
+      #     github_token: ${{ secrets.TOKEN}}
+      #     default_bump: "minor"
 
       - name: Get PYPI_TOKEN form AWS SSM
         uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.3.2

@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - pypi
+      - production
   pull_request:
     branches:
-      - pypi
+      - production
 
 # on: [push]
 

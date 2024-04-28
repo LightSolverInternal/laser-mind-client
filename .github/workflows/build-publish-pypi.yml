@@ -72,8 +72,12 @@ jobs:
         with:
           ssm-path: /ls/pypi/token #will get as PYPI_TOKEN
 
+      - name: Set API_TOKEN
+        id: pypi-api-token
+        run: echo "API_TOKEN=$PYPI_TOKEN" >> $GITHUB_OUTPUT
+
       - name: Publish package to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: $PYPI_TOKEN
+          password: ${{ steps.pypi-api-token.outputs.API_TOKEN }}
           repository-url: https://upload.pypi.org/legacy/

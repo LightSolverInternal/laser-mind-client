@@ -2,18 +2,22 @@ name: Build and Publish Python packages [PyPi]
 run-name: Build laser-mind-client Python package by @${{ github.actor }}
 
 on:
+  # This line enables you to run the CI manually. Manual runs are represented as `workflow_dispatch` event internally
   workflow_dispatch:
   push:
     branches:
       - production
   pull_request:
+    # `branches` key defines target branches. PR from "some-branch" to "production" will match
     branches:
       - production
 
-# on: [push]
-
 jobs:
+  # We need to run this job first to have access to our private `github-actions` repository without a paid plan
   checkout:
+    # Our runners have this tag. The runner must match all the tags to run the CI, so adding more tags to
+    # specify concrete configurations is good. For example, we probably want something like this:
+    # runs-on: [ lightsolver-github-runner linux cpu no-gpu ]
     runs-on: [ lightsolver-github-runner ]
     steps:
       - uses: hmarr/debug-action@v2
@@ -28,6 +32,7 @@ jobs:
           token: ${{ secrets.TOKEN }}
           path: reusable-actions
 
+  # The environment isn't cleared between jobs on a single runner, so we can use `github-actions` repository we cloned
   build-python-packages:
     runs-on: [ lightsolver-github-runner ]
     needs: checkout
@@ -37,7 +42,7 @@ jobs:
       CODE_ARTIFACT_DOMAIN_NAME: "ls-prod"
       AWS_ACCOUNT_OWNER_ID: "541441380680"
     permissions:
-      id-token: write 
+      id-token: write # This permission is required for trusted publish to PyPI: https://docs.pypi.org/trusted-publishers/
 
     steps:
       - name: Install Python
@@ -47,6 +52,7 @@ jobs:
 
       - name: Tag and Set version
         id: tag-set-version
+        # This points to the path of our action inside the repository we cloned before
         uses: ./reusable-actions/tag-set-python-package-version
         with:
           github_token: ${{ secrets.TOKEN}}
@@ -61,19 +67,21 @@ jobs:
       - name: Build a binary wheel and a source tarball
         run: python3 -m build
 
+      # The contents of `dist/` folder will be available on Github when viewing the CI run
       - name: Store the distribution packages
         uses: actions/upload-artifact@v3
         with:
           name: python-package-distributions
           path: dist/
 
-      - name: Get PYPI_TOKEN form AWS SSM
+      - name: Get PYPI_TOKEN from AWS SSM
         uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.3.2
         with:
           ssm-path: /ls/pypi/token #will get as PYPI_TOKEN
 
       - name: Set API_TOKEN
         id: pypi-api-token
+        # $GITHUB_OUTPUT points to a file that stores outputs from the CI in key=value format
         run: echo "API_TOKEN=$PYPI_TOKEN" >> $GITHUB_OUTPUT
 
       - name: Publish package to TestPyPI

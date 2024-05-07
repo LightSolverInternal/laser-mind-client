@@ -1,0 +1,45 @@
+name: Build and Publish Python packages [PyPi]
+run-name: Build laser-mind-client Python package by @${{ github.actor }}
+
+on:
+  # This line enables you to run the CI manually. Manual runs are represented as `workflow_dispatch` event internally
+  workflow_dispatch:
+  push:
+    branches:
+      - production
+  pull_request:
+    # `branches` key defines target branches. PR from "some-branch" to "production" will match
+    branches:
+      - production
+
+jobs:
+  build-python-packages:
+    # Our runners have this tag. The runner must match all the tags to run the CI, so adding more tags to
+    # specify concrete configurations is good. For example, we probably want something like this:
+    # runs-on: [ lightsolver-github-runner linux cpu no-gpu ]
+    runs-on: [ lightsolver-github-runner ]
+    permissions:
+      contents: read # This permission is needed to checkout the repo
+      id-token: write # This permission is required for trusted publish to PyPI: https://docs.pypi.org/trusted-publishers/
+    steps:
+      - uses: hmarr/debug-action@v2
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Checkout github-actions repository
+        uses: actions/checkout@v3
+        with:
+          repository: LightSolverInternal/github-actions
+          token: ${{ secrets.TOKEN }}
+          path: reusable-actions
+
+      - name: "Build and publish to Pypi"
+        uses: ./reusable-actions/build-publish-pypi
+        with:
+          github_token: ${{ secrets.TOKEN }}
+        env:
+          AWS_REGION: "eu-central-1"
+          CODE_ARTIFACT_REPOSITORY_NAME: "general-pypi-repo"
+          CODE_ARTIFACT_DOMAIN_NAME: "ls-prod"
+          AWS_ACCOUNT_OWNER_ID: "541441380680"

@@ -38,7 +38,6 @@ jobs:
         uses: ./reusable-actions/build-publish-pypi
         with:
           github_token: ${{ secrets.TOKEN }}
-          actions_path: ./reusable-actions
         env:
           AWS_REGION: "eu-central-1"
           CODE_ARTIFACT_REPOSITORY_NAME: "general-pypi-repo"

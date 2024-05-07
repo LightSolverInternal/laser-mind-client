@@ -13,12 +13,13 @@ on:
       - production
 
 jobs:
-  # We need to run this job first to have access to our private `github-actions` repository without a paid plan
-  checkout:
+  build-python-packages:
     # Our runners have this tag. The runner must match all the tags to run the CI, so adding more tags to
     # specify concrete configurations is good. For example, we probably want something like this:
     # runs-on: [ lightsolver-github-runner linux cpu no-gpu ]
     runs-on: [ lightsolver-github-runner ]
+    permissions:
+      id-token: write # This permission is required for trusted publish to PyPI: https://docs.pypi.org/trusted-publishers/
     steps:
       - uses: hmarr/debug-action@v2
 
@@ -32,19 +33,13 @@ jobs:
           token: ${{ secrets.TOKEN }}
           path: reusable-actions
 
-  # The environment isn't cleared between jobs on a single runner, so we can use `github-actions` repository we cloned
-  build-python-packages:
-    runs-on: [ lightsolver-github-runner ]
-    needs: checkout
-    env:
-      AWS_REGION: "eu-central-1"
-      CODE_ARTIFACT_REPOSITORY_NAME: "general-pypi-repo"
-      CODE_ARTIFACT_DOMAIN_NAME: "ls-prod"
-      AWS_ACCOUNT_OWNER_ID: "541441380680"
-    permissions:
-      id-token: write # This permission is required for trusted publish to PyPI: https://docs.pypi.org/trusted-publishers/
-    steps:
       - name: "Build and publish to Pypi"
         uses: ./reusable-actions/build-publish-pypi
         with:
           github_token: ${{ secrets.TOKEN }}
+          actions_path: ./reusable-actions
+        env:
+          AWS_REGION: "eu-central-1"
+          CODE_ARTIFACT_REPOSITORY_NAME: "general-pypi-repo"
+          CODE_ARTIFACT_DOMAIN_NAME: "ls-prod"
+          AWS_ACCOUNT_OWNER_ID: "541441380680"

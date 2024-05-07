@@ -43,5 +43,8 @@ jobs:
       AWS_ACCOUNT_OWNER_ID: "541441380680"
     permissions:
       id-token: write # This permission is required for trusted publish to PyPI: https://docs.pypi.org/trusted-publishers/
-    uses: ./reusable-actions/.github/workflows/build-publish-pypi.yml
-    secrets: inherit
+    steps:
+      - name: "Build and publish to Pypi"
+        uses: ./reusable-actions/build-publish-pypi
+        with:
+          github_token: ${{ secrets.TOKEN }}

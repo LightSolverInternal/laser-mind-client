@@ -19,6 +19,7 @@ jobs:
     # runs-on: [ lightsolver-github-runner linux cpu no-gpu ]
     runs-on: [ lightsolver-github-runner ]
     permissions:
+      content: read # This permission is needed to checkout the repo
       id-token: write # This permission is required for trusted publish to PyPI: https://docs.pypi.org/trusted-publishers/
     steps:
       - uses: hmarr/debug-action@v2

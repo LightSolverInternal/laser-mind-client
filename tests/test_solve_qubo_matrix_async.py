@@ -1,4 +1,5 @@
 import numpy
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
 # Create a mock QUBO problem
@@ -20,4 +21,6 @@ requestToken = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1, wait
 # This blocks operations until the solution is acquired.
 res = lsClient.get_solution_sync(requestToken)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")

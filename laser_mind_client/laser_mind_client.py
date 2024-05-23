@@ -2,6 +2,7 @@ import os
 import logging
 import time
 import numpy
+import requests
 
 from ls_api_clients import LSAPIClient
 from ls_packers import float_array_as_int
@@ -44,11 +45,15 @@ class LaserMind:
                 password = os.environ['LS_PASS']
             else:
                 raise Exception("the 'password' parameter cannot be None if the LS_PASS environment variable is not set.")
-
-        self.states_per_call = states_per_call
-        logging.info('LightSolver connection init started')
-        self.apiClient = LSAPIClient(username, password)
-        logging.info('LightSolver connection init finished')
+        try:
+            self.states_per_call = states_per_call
+            logging.info('LightSolver connection init started')
+            self.apiClient = LSAPIClient(username, password)
+            logging.info('LightSolver connection init finished')
+        except requests.exceptions.ConnectionError as e:
+            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 
     def get_solution_by_id(self, solutionId, timestamp):
         """
@@ -129,10 +134,15 @@ class LaserMind:
         - `varCount` : The amount number of variables of the problem.
 
         """
-        commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
+        try:
+            commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
 
-        iid = self.apiClient.upload_command_input(commandInput, inputPath)
-        return iid, varCount
+            iid = self.apiClient.upload_command_input(commandInput, inputPath)
+            return iid, varCount
+        except requests.exceptions.ConnectionError as e:
+            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 
     def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
         """
@@ -160,11 +170,15 @@ class LaserMind:
             MessageKeys.ALGO_RUN_TIMEOUT : timeout,
             MessageKeys.VAR_COUNT_KEY : varCount
             }
-
-        response = self.apiClient.SendCommandRequest(command_name, requestInput)
-        logging.info(f"got response {response}")
-        if not waitForSolution:
-            return response
-        result = self.get_solution_sync(response)
-        return result
+        try:
+            response = self.apiClient.SendCommandRequest(command_name, requestInput)
+            logging.info(f"got response {response}")
+            if not waitForSolution:
+                return response
+            result = self.get_solution_sync(response)
+            return result
+        except requests.exceptions.ConnectionError as e:
+            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 

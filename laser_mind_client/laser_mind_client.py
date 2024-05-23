@@ -32,15 +32,15 @@ class LaserMind:
     POLL_DELAY_SECS = 0.5
 
     def __init__(self,
-                 token = None,
+                 usertoken = None,
                  states_per_call=3):
-        if token == None:
+        if usertoken is None:
             raise Exception("the 'token' parameter cannot be None ")
 
         try:
             self.states_per_call = states_per_call
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(token)
+            self.apiClient = LSAPIClient(usertoken)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")

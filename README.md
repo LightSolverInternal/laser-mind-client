@@ -117,7 +117,11 @@ The `solve_qubo` function is used with the following parameters:
 
 ```python
 import numpy
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
 
 # Create a mock QUBO problem
 quboProblemData = numpy.random.randint(-1, 2, (10,10))
@@ -126,11 +130,13 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
 ```
 
 ### Solve QUBO Adjacency List Example
@@ -141,7 +147,11 @@ The `solve_qubo` function is used with the following parameters:
 
 
 ```python
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
 
 # Create a mock QUBO problem
 quboListData = [
@@ -152,11 +162,13 @@ quboListData = [
     [3,10,1]]
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 res = lsClient.solve_qubo(edgeList=quboListData, timeout=1)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
 ```
 
 ### Solve QUBO Matrix using Asynchronous Flow
@@ -169,7 +181,11 @@ The `solve_qubo` function is used with the following parameters:
 
 ```python
 import numpy
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
 
 # Create a mock QUBO problem
 quboProblemData = numpy.random.randint(-1, 2, (10,10))
@@ -178,7 +194,7 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 # Request a solution to the QUBO problem and get the request token for future retrieval.
 # This call does not block operations until the problem is solved.
@@ -190,5 +206,7 @@ requestToken = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1, wait
 # This blocks operations until the solution is acquired.
 res = lsClient.get_solution_sync(requestToken)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
 ```

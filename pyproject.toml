@@ -14,12 +14,12 @@ requires-python = ">=3.8"
 dependencies = [
   'numpy>=1.21.5',
   'laser-mind-client-meta>=0.0.9',
-  'ls_api_clients>=0.4.6',
+  'ls_api_clients>=0.16.0',
   'ls-packers>=0.2.0'
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
 

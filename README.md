@@ -7,7 +7,7 @@ This package is designated for internal access to features during the developmen
 ## Features
 - **QUBO Problem Solving:** The `solve_qubo` function accepts a QUBO problem, represented either as a 2D array (matrix) or an adjacency list, and returns the solution.
 - **Synchronous and Asynchronous Operation:** Users can choose between blocking (synchronous) and non-blocking (asynchronous) modes for QUBO problem solving.
-- **Flexible Installation:** Compatible with both Windows and Ubuntu systems.
+- **Flexible Installation:** Compatible with both Windows and MacOS systems.
 
 ### Solve QUBO
 The `solve_qubo` function handles the computation of QUBO problems, either represented by a 2D array (matrix) or by an adjacency list. For code samples, see the **Usage** section.
@@ -33,106 +33,70 @@ A dictionary with the following fields:
 ## Setting Up
 
 ### Prerequisites
-- Valid credentials for connecting to the LightSolver Cloud.
-- LightSolver Client code project - please use this link to download.
-- Python 3.10.
-- Operating System: Linux or Windows. Tested on Ubuntu 20.04 and Windows 11.
+- Operating System: MacOS or Windows 11.
+- Valid token for connecting to the LightSolver Cloud (provided separately).
+- Python 3.10 or higher ([Download Here](https://www.python.org/downloads/release/python-31011/)).
+    - Select the appropriate MacOS/Windows version at the bottom.
+    - Note: for Windows installation, switch on the "Add to Path" option in the wizard.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client (Please see detailed action further below under the relevant OS).
 
 ### Installation
-Complete the installation on Windows or Ubuntu as described below.
-For further assistance  with setup or connection issues, contact support@lightsolver.com.
+Complete the installation on Windows or MacOS as described below.
+For further assistance with setup or connection issues, contact support@lightsolver.com.
 
 #### Windows
-1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
-2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
-    ```
-    cd <your project folder>
-    ```
+1. Press the windows key, type "cmd", and select "Command Prompt".
 
-3. (Recommended) Set the LightSolver credentials using environment variables (will remove the need to provide credentials for every usage).
-    Run the following command:
+2. Navigate to the root folder of the project where you plan to use the LightSolver Client:
 ```sh
-    python setup_env.py
+    cd <your project folder>
 ```
 
-4. (Recommended) Create a virtual environment:
+3. (Recommended) Create and activate the virtual environment:
 ```sh
     python -m venv .venv
-```
-
-5. (Recommended) Activate the new virtual environment:
-```sh
     .venv\Scripts\activate
 ```
 
-6. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
+4. Install the laser-mind-client package:
 ```sh
-    pip install --no-cache-dir --find-links=.\packages laser-mind-client
+    pip install laser-mind-client
 ```
 
-7. (Recommended) Test LightSolver credentials
-    Run the following command:
+5. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
 ```sh
-    python test_env.py
-```
-    if test credentials failed , please  reinstall credentials using following commands:
-    - Exit virtual environment , by running :
-```sh
-    deactivate
-```
-    - Run the following command:
-```sh
-    python setup_env.py
+    cd lightsolver_onboarding
+    python ./tests/test_solve_qubo_matrix.py
 ```
 
 
-#### Ubuntu
-1. Open new terminal window
-2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
-    ```
+#### MacOS
+1. Open new terminal window.
+
+2. Navigate to the root folder of the project where you plan to use the LightSolver Client:
+```sh
     cd <your project folder>
-    ```
-
-3. (Recommended) Set the LightSolver credentials using environment variables (will remove the need to provide credentials for every usage).
-    Run the following command:
-```sh
-    python3 setup_env.py
-    source ~/.bash_profile
 ```
 
-4. (Recommended) Create a virtual environment:
+4. (Recommended) Create and activate the virtual environment:
 ```sh
     python3 -m venv .venv
-```
-
-5. (Recommended) Activate the new virtual environment:
-```sh
     chmod 755  .venv/bin/activate
     source .venv/bin/activate
 ```
 
-6. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
+5. Install the laser-mind-client package.
 ```sh
-    pip install --no-cache-dir --find-links=./packages laser-mind-client
+    pip install laser-mind-client
 ```
 
-7. (Recommended) Test LightSolver credentials
-    Run the following command:
+8. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
 ```sh
-    python3 test_env.py
-```
-    if test credentials failed , please  reinstall credentials using following commands:
-    - Exit virtual environment , by running :
-```sh
-    deactivate
-```
-    - Run the following command:
-```sh
-    python3 setup_env.py
-    source ~/.bash_profile
+    cd lightsolver_onboarding
+    python3 ./tests/test_solve_qubo_matrix.py
 ```
 
+***
 ## Authentication
 Initialization of the `LaserMind` class automatically forms a secure and authenticated connection with the LightSolver Cloud.
 Subsequent calls by the same user are similarly secure and authenticated.
@@ -151,7 +115,11 @@ The `solve_qubo` function is used with the following parameters:
 
 ```python
 import numpy
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
 
 # Create a mock QUBO problem
 quboProblemData = numpy.random.randint(-1, 2, (10,10))
@@ -160,11 +128,13 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
 ```
 
 ### Solve QUBO Adjacency List Example
@@ -175,7 +145,11 @@ The `solve_qubo` function is used with the following parameters:
 
 
 ```python
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
 
 # Create a mock QUBO problem
 quboListData = [
@@ -186,15 +160,17 @@ quboListData = [
     [3,10,1]]
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 res = lsClient.solve_qubo(edgeList=quboListData, timeout=1)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
 ```
 
 ### Solve QUBO Matrix using Asynchronous Flow
-This example demonstratse how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
+This example demonstrates how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
 Begin by creating a matrix to represent your QUBO problem.
 The `solve_qubo` function is used with the following parameters:
    - `matrixData`: A 2D array representing the QUBO problem.
@@ -203,7 +179,11 @@ The `solve_qubo` function is used with the following parameters:
 
 ```python
 import numpy
+from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
 
 # Create a mock QUBO problem
 quboProblemData = numpy.random.randint(-1, 2, (10,10))
@@ -212,7 +192,7 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 # Request a solution to the QUBO problem and get the request token for future retrieval.
 # This call does not block operations until the problem is solved.
@@ -224,5 +204,7 @@ requestToken = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1, wait
 # This blocks operations until the solution is acquired.
 res = lsClient.get_solution_sync(requestToken)
 
-print(res)
+assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
 ```

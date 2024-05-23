@@ -2,6 +2,7 @@ import os
 import logging
 import time
 import numpy
+import requests
 
 from ls_api_clients import LSAPIClient
 from ls_packers import float_array_as_int
@@ -31,26 +32,20 @@ class LaserMind:
     POLL_DELAY_SECS = 0.5
 
     def __init__(self,
-                 username = None,
-                 password = None,
+                 userToken = None,
                  states_per_call=3):
-        if username == None:
-            if 'LS_USER' in os.environ:
-                username = os.environ['LS_USER']
-            else:
-                raise Exception("the 'username' parameter cannot be None if the LS_USER environment variable is not set.")
-        if password == None:
-            if 'LS_PASS' in os.environ:
-                password = os.environ['LS_PASS']
-            else:
-                raise Exception("the 'password' parameter cannot be None if the LS_PASS environment variable is not set.")
+        if userToken is None:
+            raise Exception("the 'token' parameter cannot be None ")
+
         try:
             self.states_per_call = states_per_call
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(username, password)
+            self.apiClient = LSAPIClient(userToken)
             logging.info('LightSolver connection init finished')
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 
     def get_solution_by_id(self, solutionId, timestamp):
         """
@@ -136,8 +131,10 @@ class LaserMind:
 
             iid = self.apiClient.upload_command_input(commandInput, inputPath)
             return iid, varCount
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 
     def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
         """
@@ -172,6 +169,8 @@ class LaserMind:
                 return response
             result = self.get_solution_sync(response)
             return result
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+        except Exception as e:
+                raise  e
 

@@ -34,9 +34,7 @@ A dictionary with the following fields:
 
 ### Prerequisites
 - Operating System: MacOS or Windows 11.
-- Valid credentials for connecting to the LightSolver Cloud ([Registration](https://id.lightsolver.com/signin/register)).
-- LightSolver Client code project (provided separately).
-    - Verify installation of software for unzipping the LightSolver Client.
+- Valid token for connecting to the LightSolver Cloud (provided separately).
 - Python 3.10 or higher ([Download Here](https://www.python.org/downloads/release/python-31011/)).
     - Select the appropriate MacOS/Windows version at the bottom.
     - Note: for Windows installation, switch on the "Add to Path" option in the wizard.

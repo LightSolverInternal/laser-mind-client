@@ -1,6 +1,9 @@
 from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
+# Enter your TOKEN here
+userToken = "<my_token>"
+
 # Create a mock QUBO problem
 quboListData = [
     [1,1,5],
@@ -10,7 +13,7 @@ quboListData = [
     [3,10,1]]
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind()
+lsClient = LaserMind(userToken=userToken)
 
 res = lsClient.solve_qubo(edgeList=quboListData, timeout=1)
 

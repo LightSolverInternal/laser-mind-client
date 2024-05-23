@@ -7,10 +7,6 @@ on:
   push:
     branches:
       - production
-  pull_request:
-    # `branches` key defines target branches. PR from "some-branch" to "production" will match
-    branches:
-      - production
 
 jobs:
   # We need to run this job first to have access to our private `github-actions` repository without a paid plan

@@ -7,7 +7,7 @@ This package is designated for internal access to features during the developmen
 ## Features
 - **QUBO Problem Solving:** The `solve_qubo` function accepts a QUBO problem, represented either as a 2D array (matrix) or an adjacency list, and returns the solution.
 - **Synchronous and Asynchronous Operation:** Users can choose between blocking (synchronous) and non-blocking (asynchronous) modes for QUBO problem solving.
-- **Flexible Installation:** Compatible with both Windows and Ubuntu systems.
+- **Flexible Installation:** Compatible with both Windows and MacOS systems.
 
 ### Solve QUBO
 The `solve_qubo` function handles the computation of QUBO problems, either represented by a 2D array (matrix) or by an adjacency list. For code samples, see the **Usage** section.
@@ -33,15 +33,18 @@ A dictionary with the following fields:
 ## Setting Up
 
 ### Prerequisites
-- Valid credentials for connecting to the LightSolver Cloud.
-- LightSolver Client code project - please use this link to download.
-- Python 3.10.
-- Operating System: Linux or Windows. Tested on Ubuntu 20.04 and Windows 11.
+- Operating System: MacOS or Windows 11.
+- Valid credentials for connecting to the LightSolver Cloud ([Registration](https://id.lightsolver.com/signin/register)).
+- LightSolver Client code project (provided separately).
+    - Verify installation of software for unzipping the LightSolver Client.
+- Python 3.10 or higher ([Download Here](https://www.python.org/downloads/release/python-31011/)).
+    - Select the appropriate MacOS/Windows version at the bottom.
+    - Note: for Windows installation, switch on the "Add to Path" option in the wizard.
 - Highly Recommended: Use a virtual environment before installing laser-mind-client (Please see detailed action further below under the relevant OS).
 
 ### Installation
-Complete the installation on Windows or Ubuntu as described below.
-For further assistance  with setup or connection issues, contact support@lightsolver.com.
+Complete the installation on Windows or MacOS as described below.
+For further assistance with setup or connection issues, contact support@lightsolver.com.
 
 #### Windows
 1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
@@ -76,18 +79,14 @@ For further assistance  with setup or connection issues, contact support@lightso
 ```sh
     python test_env.py
 ```
-    if test credentials failed , please  reinstall credentials using following commands:
-    - Exit virtual environment , by running :
+8. (Recommended) Test - using the inline project test examples
+   Run the following command:
 ```sh
-    deactivate
-```
-    - Run the following command:
-```sh
-    python setup_env.py
+    python ./tests/test_solve_qubo_matrix.py
 ```
 
 
-#### Ubuntu
+#### MacOS
 1. Open new terminal window
 2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
     ```
@@ -122,17 +121,14 @@ For further assistance  with setup or connection issues, contact support@lightso
 ```sh
     python3 test_env.py
 ```
-    if test credentials failed , please  reinstall credentials using following commands:
-    - Exit virtual environment , by running :
+
+8. (Recommended) Test - using the inline project test examples
+   Run the following command:
 ```sh
-    deactivate
-```
-    - Run the following command:
-```sh
-    python3 setup_env.py
-    source ~/.bash_profile
+    python3 ./tests/test_solve_qubo_matrix.py
 ```
 
+***
 ## Authentication
 Initialization of the `LaserMind` class automatically forms a secure and authenticated connection with the LightSolver Cloud.
 Subsequent calls by the same user are similarly secure and authenticated.
@@ -194,7 +190,7 @@ print(res)
 ```
 
 ### Solve QUBO Matrix using Asynchronous Flow
-This example demonstratse how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
+This example demonstrates how to solve a QUBO problem asynchronously using the LightSolver Platform Client.
 Begin by creating a matrix to represent your QUBO problem.
 The `solve_qubo` function is used with the following parameters:
    - `matrixData`: A 2D array representing the QUBO problem.

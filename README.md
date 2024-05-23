@@ -47,84 +47,54 @@ Complete the installation on Windows or MacOS as described below.
 For further assistance with setup or connection issues, contact support@lightsolver.com.
 
 #### Windows
-1. Press the windows key, type "cmd", right click on the result and select "Run as administrator".
-2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
-    ```
-    cd <your project folder>
-    ```
+1. Press the windows key, type "cmd", and select "Command Prompt".
 
-3. (Recommended) Set the LightSolver credentials using environment variables (will remove the need to provide credentials for every usage).
-    Run the following command:
+2. Navigate to the root folder of the project where you plan to use the LightSolver Client:
 ```sh
-    python setup_env.py
+    cd <your project folder>
 ```
 
-4. (Recommended) Create a virtual environment:
+3. (Recommended) Create and activate the virtual environment:
 ```sh
     python -m venv .venv
-```
-
-5. (Recommended) Activate the new virtual environment:
-```sh
     .venv\Scripts\activate
 ```
 
-6. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
+4. Install the laser-mind-client package:
 ```sh
-    pip install --no-cache-dir --find-links=.\packages laser-mind-client
+    pip install laser-mind-client
 ```
 
-7. (Recommended) Test LightSolver credentials
-    Run the following command:
+5. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
 ```sh
-    python test_env.py
-```
-8. (Recommended) Test - using the inline project test examples
-   Run the following command:
-```sh
+    cd lightsolver_onboarding
     python ./tests/test_solve_qubo_matrix.py
 ```
 
 
 #### MacOS
-1. Open new terminal window
-2. Navigate to the root folder where you unzipped and plan to use the LightSolver Client:
-    ```
-    cd <your project folder>
-    ```
+1. Open new terminal window.
 
-3. (Recommended) Set the LightSolver credentials using environment variables (will remove the need to provide credentials for every usage).
-    Run the following command:
+2. Navigate to the root folder of the project where you plan to use the LightSolver Client:
 ```sh
-    python3 setup_env.py
-    source ~/.bash_profile
+    cd <your project folder>
 ```
 
-4. (Recommended) Create a virtual environment:
+4. (Recommended) Create and activate the virtual environment:
 ```sh
     python3 -m venv .venv
-```
-
-5. (Recommended) Activate the new virtual environment:
-```sh
     chmod 755  .venv/bin/activate
     source .venv/bin/activate
 ```
 
-6. Install the laser-mind-client package. This command instructs pip to install the package from a local folder instead of searching online:
+5. Install the laser-mind-client package.
 ```sh
-    pip install --no-cache-dir --find-links=./packages laser-mind-client
+    pip install laser-mind-client
 ```
 
-7. (Recommended) Test LightSolver credentials
-    Run the following command:
+8. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
 ```sh
-    python3 test_env.py
-```
-
-8. (Recommended) Test - using the inline project test examples
-   Run the following command:
-```sh
+    cd lightsolver_onboarding
     python3 ./tests/test_solve_qubo_matrix.py
 ```
 

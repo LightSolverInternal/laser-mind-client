@@ -32,23 +32,15 @@ class LaserMind:
     POLL_DELAY_SECS = 0.5
 
     def __init__(self,
-                 username = None,
-                 password = None,
+                 usertoken = None,
                  states_per_call=3):
-        if username == None:
-            if 'LS_USER' in os.environ:
-                username = os.environ['LS_USER']
-            else:
-                raise Exception("the 'username' parameter cannot be None if the LS_USER environment variable is not set.")
-        if password == None:
-            if 'LS_PASS' in os.environ:
-                password = os.environ['LS_PASS']
-            else:
-                raise Exception("the 'password' parameter cannot be None if the LS_PASS environment variable is not set.")
+        if usertoken is None:
+            raise Exception("the 'token' parameter cannot be None ")
+
         try:
             self.states_per_call = states_per_call
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(username, password)
+            self.apiClient = LSAPIClient(usertoken)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")

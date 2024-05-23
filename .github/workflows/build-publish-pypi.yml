@@ -59,11 +59,10 @@ jobs:
           default_bump: "minor"
 
       - name: Install pypa/build
-        run: >-
-          python3 -m
-          pip install
-          build
-          --user
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install build
       - name: Build a binary wheel and a source tarball
         run: python3 -m build
 
@@ -73,6 +72,23 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
+
+      - name: Store the files for onboarding
+        uses: actions/upload-artifact@v3
+        with:
+          name: onboarding
+          path: |
+            README.md
+            tests/
+
+      - name: Store the files for onboarding [OFFLINE]
+        uses: actions/upload-artifact@v3
+        with:
+          name: onboarding-offline
+          path: |
+            README.md
+            tests/
+            packages/
 
       - name: Get PYPI_TOKEN from AWS SSM
         uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.3.2

@@ -78,19 +78,19 @@ For further assistance with setup or connection issues, contact support@lightsol
     cd <your project folder>
 ```
 
-4. (Recommended) Create and activate the virtual environment:
+3. (Recommended) Create and activate the virtual environment:
 ```sh
     python3 -m venv .venv
     chmod 755  .venv/bin/activate
     source .venv/bin/activate
 ```
 
-5. Install the laser-mind-client package.
+4. Install the laser-mind-client package.
 ```sh
     pip install laser-mind-client
 ```
 
-8. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
+5. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
 ```sh
     cd lightsolver_onboarding
     python3 ./tests/test_solve_qubo_matrix.py
@@ -208,3 +208,4 @@ assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected fo
 
 print(f"Test PASSED, response is: \n{res}")
 ```
+

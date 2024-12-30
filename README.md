@@ -63,9 +63,11 @@ For further assistance with setup or connection issues, contact support@lightsol
     pip install laser-mind-client
 ```
 
-5. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
+5. (Recommended) Test using one of the provided test examples. Under the above project folder unzip "lightsolver_onboarding.zip."
 ```sh
     cd lightsolver_onboarding
+    open test_solve_qubo_matrix.py file for edit
+    enter the provided TOKEN in line 6 (userToken = "<my_token>")
     python ./tests/test_solve_qubo_matrix.py
 ```
 
@@ -78,21 +80,23 @@ For further assistance with setup or connection issues, contact support@lightsol
     cd <your project folder>
 ```
 
-4. (Recommended) Create and activate the virtual environment:
+3. (Recommended) Create and activate the virtual environment:
 ```sh
     python3 -m venv .venv
     chmod 755  .venv/bin/activate
     source .venv/bin/activate
 ```
 
-5. Install the laser-mind-client package.
+4. Install the laser-mind-client package.
 ```sh
     pip install laser-mind-client
 ```
 
-8. (Recommended) Test using one of the provided test examples. Unzip "lightsolver_onboarding.zip."
+8. (Recommended) Test using one of the provided test examples. Under the above project folder unzip "lightsolver_onboarding.zip."
 ```sh
     cd lightsolver_onboarding
+    open test_solve_qubo_matrix.py file for edit
+    enter the provided TOKEN in line 6 (userToken = "<my_token>")
     python3 ./tests/test_solve_qubo_matrix.py
 ```
 

@@ -178,7 +178,7 @@ class LaserMind:
     def get_account_details(self):
         requestInput = {}
         try:
-            response = self.apiClient.SendCommandRequest("get_account_details", requestInput, self.secured)
+            response = self.apiClient.SendCommandRequest("get_account_details", requestInput)
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:

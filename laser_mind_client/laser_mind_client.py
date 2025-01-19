@@ -261,6 +261,15 @@ class LaserMind:
                 if (varCount > 100 or varCount < 5):
                     raise(ValueError("The total number of variables must be between 5-100"))
 
+                #coupMat validity test
+                coupMatSum = numpy.sum(abs(matrixData),axis=1)
+                if numpy.any(coupMatSum - 1 > 1e-5) :
+                    raise ValueError('Invalid coupMat, sum of a row is more than 1')
+                if numpy.any(coupMatSum == 0):
+                    raise ValueError('Invalid coupMat, sum of a row is zero ')
+                if not numpy.iscomplexobj(matrixData):
+                    raise TypeError('coupMat data type is not complex, recommendation dtype=np.complex64')
+
                 if type(matrixData) == numpy.ndarray:
                     matrixData = symmetrize(matrixData)
                     if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:

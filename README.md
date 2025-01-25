@@ -7,6 +7,7 @@ This package is designated for internal access to features during the developmen
 ## Features
 - **QUBO Problem Solving:** The `solve_qubo` function accepts a QUBO problem, represented either as a 2D array (matrix) or an adjacency list, and returns the solution.
 - **Synchronous and Asynchronous Operation:** Users can choose between blocking (synchronous) and non-blocking (asynchronous) modes for QUBO problem solving.
+- **Fetching Account Details:** All account info is available through this client. Includes: email, solve time remaining, variable count ("spin") limit and the user's expiration date.
 - **Flexible Installation:** Compatible with both Windows and MacOS systems.
 
 ### Solve QUBO
@@ -29,6 +30,15 @@ A dictionary with the following fields:
 ### Synchronous and Asynchronous Usage
 - **Synchronous Mode (Default):** The `waitForSolution` flag is set to **True** by default. The function blocks operations until a result is received.
 - **Asynchronous Mode:** Set `waitForSolution` to **False**. The function returns immediately with a token object, allowing the script to continue while the server processes the QUBO problem.
+
+### Fetching Account Details
+The `get_account_details()` function returns a python dictionary containing the following keys:
+```
+- 'dlpu_spin_limit': an int indicating the largest matrix size the user can send to the dlpu (dimensions of dlpu_spin_limit X dlpu_spin_limit).
+- 'username': the username / email associated with this user. String.
+- 'expiration_date: an Epoch timestamp indicating when the user expires. Int.
+- 'dlpu_credit_seconds': solve time remaining for the user. Float.
+```
 
 ## Setting Up
 

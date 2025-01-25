@@ -1,5 +1,3 @@
-import numpy
-from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here

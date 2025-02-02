@@ -108,7 +108,8 @@ Subsequent calls by the same user are similarly secure and authenticated.
 ## Usage
 To begin solving any QUBO problem:
 1. Create an instance of the ```LaserMind``` class. This class represents the client that requests solutions from the LightSolver Cloud.
-2. Call the ```solve_qubo``` function using either a matrix or an adjacency list.
+2. By default, all logs are printed to laser-mind.log file in current directory and to console, Output to console can be disabled by setting ```logToConsole=False```
+3. Call the ```solve_qubo``` function using either a matrix or an adjacency list.
 **Note:** You may either provide a value for ```matrixData``` or for ```edgeList```, but not both.
 
 ### Solve QUBO Matrix Example
@@ -131,8 +132,8 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 # Symmetrize the matrix
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=userToken)
+# Connect to the LightSolver Cloud, without console output
+lsClient = LaserMind(userToken=userToken, logToConsole=False)
 
 res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
 
@@ -213,3 +214,69 @@ assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected fo
 print(f"Test PASSED, response is: \n{res}")
 ```
 
+### Solve QUBO Matrix by LPU Example
+This example creates a matrix representing a QUBO problem and solves it using the LightSolver LPU Platform Client.
+The `solve_qubo_lpu` function is used with the following parameters:
+- ```matrixData```: A 2D array representing the QUBO problem.
+- ```num_runs ```: The required number or calculation runs, default 1.
+
+```python
+import numpy
+from laser_mind_client_meta import MessageKeys
+from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
+
+# Create a mock QUBO problem
+quboProblemData = numpy.random.randint(-1, 2, (10,10))
+
+# Symmetrize the matrix
+quboProblemData = (quboProblemData + quboProblemData.T) // 2
+
+# Connect to the LightSolver Cloud, without console output
+lsClient = LaserMind(userToken=userToken, logToConsole=True)
+
+res = lsClient.solve_qubo_lpu(matrixData = quboProblemData, num_runs = 2)
+
+assert 'data' in res, "Test FAILED, response is not in expected format"
+assert MessageKeys.SOLUTION in res['data'], "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
+```
+
+
+### Solve QUBO Matrix by LPU Example
+This example creates a Coupling matrix problem and solves it using the LightSolver LPU Platform Client.
+The `solve_coupling_matrix_lpu` function is used with the following parameters:
+- ```matrixData```: A 2D array representing the QUBO problem.
+- ```num_runs ```: The required number or calculation runs, default 1.
+
+```python
+import numpy
+from laser_mind_client_meta import MessageKeys
+from laser_mind_client import LaserMind
+
+# Enter your TOKEN here
+userToken = "<my_token>"
+
+size = 25
+coupMat = 0.5 * numpy.eye( size ,dtype=numpy.complex64)
+coupling = (1-0.5)/(2)
+for i in range(size - 1):
+    coupMat[i,i+1] = coupling
+    coupMat[i+1,i] = coupling
+
+# Connect to the LightSolver Cloud, without console output
+lsClient = LaserMind(userToken=userToken, logToConsole=True)
+
+res = lsClient.solve_coupling_matrix_lpu(matrixData = quboProblemData, num_runs = 1)
+
+assert 'data' in res, "Test FAILED, response is not in expected format"
+assert  'phase_difference' in res['data'], "Test FAILED, response is not in expected format"
+assert  'energy_problem'   in res['data'], "Test FAILED, response is not in expected format"
+assert  'contrast_problem' in res['data'], "Test FAILED, response is not in expected format"
+assert  'solverRunningTime' in res['data'], "Test FAILED, response is not in expected format"
+
+print(f"Test PASSED, response is: \n{res}")
+```

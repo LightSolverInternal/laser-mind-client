@@ -33,14 +33,15 @@ class LaserMind:
 
     def __init__(self,
                  userToken = None,
-                 states_per_call=3):
+                 states_per_call=3,
+                 logToConsole=True):
         if userToken is None:
             raise Exception("the 'token' parameter cannot be None ")
 
         try:
             self.states_per_call = states_per_call
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(userToken)
+            self.apiClient = LSAPIClient(userToken=userToken,logToConsole=logToConsole)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")

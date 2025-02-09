@@ -1,9 +1,16 @@
+####################################################################################################
+# This example creates a QUBO matrix and solves it using the LPU over LightSolver's platform.
+# The `solve_qubo` function is used with the following parameters:
+# - `matrixData`: A 2D array representing the QUBO problem.
+# - `timeout`: The required time limit for the calculation in seconds.
+####################################################################################################
+
 import numpy
 from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here
-userToken = "<my_token>"
+userToken = "<TOKEN>"
 
 # Create a mock QUBO problem
 quboProblemData = numpy.random.randint(-1, 2, (10,10))

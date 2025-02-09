@@ -1,8 +1,6 @@
 ####################################################################################################
-# This example solves a QUBO matrix using the dLPU over LightSolver's platform.
-# The `solve_qubo_lpu` function is used with the following parameters:
-# - `matrixData`: A 2D array representing the QUBO problem.
-# - `num_runs`: The required number or calculation runs, default 1.
+# This example solves a QUBO matrix using the dLPU over LightSolver's platform while avoiding
+# logging to the terminal.
 ####################################################################################################
 import numpy
 from laser_mind_client_meta import MessageKeys
@@ -17,8 +15,8 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 # Symmetrize the matrix
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=userToken)
+# Connect to the LightSolver Cloud, Do NOT log to terminal (will still log to file)
+lsClient = LaserMind(userToken=userToken, logToConsole=False)
 
 res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
 

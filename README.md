@@ -225,7 +225,7 @@ print(f"Test PASSED, response is: \n{res}")
 ```
 
 ### Solve QUBO Matrix by LPU Example
-This example creates a matrix representing a QUBO problem and solves it using the LightSolver LPU Platform Client.
+This example creates a qubo matrix representing a QUBO problem and solves it using the LightSolver LPU Platform Client.
 The `solve_qubo_lpu` function is used with the following parameters:
 - ```matrixData```: A 2D array representing the QUBO problem.
 - ```num_runs ```: The required number or calculation runs, default 1.
@@ -256,10 +256,10 @@ print(f"Test PASSED, response is: \n{res}")
 ```
 
 
-### Solve QUBO Matrix by LPU Example
+### Solve Coupling Matrix by LPU Example
 This example creates a Coupling matrix problem and solves it using the LightSolver LPU Platform Client.
 The `solve_coupling_matrix_lpu` function is used with the following parameters:
-- ```matrixData```: A 2D array representing the QUBO problem.
+- ```matrixData```: A 2D array representing the coupmat problem.
 - ```num_runs ```: The required number or calculation runs, default 1.
 
 ```python

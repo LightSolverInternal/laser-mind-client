@@ -32,15 +32,14 @@ class LaserMind:
     POLL_DELAY_SECS = 0.5
 
     def __init__(self,
-                 userToken = None,
-                 states_per_call=3):
+                 userToken = None
+                 logToConsole=True):
         if userToken is None:
             raise Exception("the 'token' parameter cannot be None ")
 
         try:
-            self.states_per_call = states_per_call
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(userToken)
+            self.apiClient = LSAPIClient(userToken=userToken,logToConsole=logToConsole)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
@@ -261,15 +260,6 @@ class LaserMind:
                 if (varCount > 100 or varCount < 5):
                     raise(ValueError("The total number of variables must be between 5-100"))
 
-                #coupMat validity test
-                coupMatSum = numpy.sum(abs(matrixData),axis=1)
-                if numpy.any(coupMatSum - 1 > 1e-5) :
-                    raise ValueError('Invalid coupMat, sum of a row is more than 1')
-                if numpy.any(coupMatSum == 0):
-                    raise ValueError('Invalid coupMat, sum of a row is zero ')
-                if not numpy.iscomplexobj(matrixData):
-                    raise TypeError('coupMat data type is not complex, recommendation dtype=np.complex64')
-
                 if type(matrixData) == numpy.ndarray:
                     matrixData = symmetrize(matrixData)
                     if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
@@ -289,8 +279,8 @@ class LaserMind:
                     edgeList = edgeList.tolist()
                 else:
                     varCount = numpy.max(numpy.array(edgeList)[:,0:2])
-                if varCount > 10000 or varCount < 10:
-                    raise(ValueError("The total number of variables must be between 10-10000"))
+                if varCount > 100 or varCount < 5:
+                    raise(ValueError("The total number of variables must be between 5-100"))
                 commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
             else:
                 raise Exception("You must provide either a QUBO matrix or a QUBO edge list")

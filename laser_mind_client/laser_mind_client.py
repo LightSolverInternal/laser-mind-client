@@ -33,14 +33,13 @@ class LaserMind:
 
     def __init__(self,
                  userToken = None,
-                 states_per_call=3):
+                 logToConsole=True):
         if userToken is None:
             raise Exception("the 'token' parameter cannot be None ")
 
         try:
-            self.states_per_call = states_per_call
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(userToken)
+            self.apiClient = LSAPIClient(usertoken = userToken, logToConsole = logToConsole)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
@@ -189,7 +188,7 @@ class LaserMind:
 
     def solve_qubo_lpu(self, matrixData = None, edgeList = None, waitForSolution = True, inputPath = None, num_runs = 1 ):
         if inputPath == None:
-            iid, varCount = self.upload_lpu_qubo_input(matrixData, edgeList)
+            iid, varCount = self.upload_lpu_qubo_input(matrix_data = matrixData, edge_list = edgeList)
         else:
             iid = inputPath
             varCount = 100
@@ -222,7 +221,7 @@ class LaserMind:
 
     def solve_coupling_matrix_lpu(self, matrixData = None, edgeList = None, waitForSolution = True, inputPath = None, num_runs = 1):
         if inputPath == None:
-            iid, varCount = self.upload_lpu_coupmat_input(matrixData, edgeList)
+            iid, varCount = self.upload_lpu_coupmat_input(matrix_data= matrixData, edge_list = edgeList)
         else:
             iid = inputPath
             varCount = 100
@@ -253,83 +252,68 @@ class LaserMind:
             raise  e
 
 
-    def upload_lpu_qubo_input(self, matrixData = None, edgeList = None, inputPath = None):
-        try:
-            commandInput = {}
-            if matrixData is not None:
-                varCount = len(matrixData)
-                if (varCount > 100 or varCount < 5):
-                    raise(ValueError("The total number of variables must be between 5-100"))
+    def upload_lpu_qubo_input(self, matrix_data = None, edge_list = None, input_path = None):
+        command_input = {}
+        if matrix_data is not None:
+            var_count = len(matrix_data)
 
-                #coupMat validity test
-                coupMatSum = numpy.sum(abs(matrixData),axis=1)
-                if numpy.any(coupMatSum - 1 > 1e-5) :
-                    raise ValueError('Invalid coupMat, sum of a row is more than 1')
-                if numpy.any(coupMatSum == 0):
-                    raise ValueError('Invalid coupMat, sum of a row is zero ')
-                if not numpy.iscomplexobj(matrixData):
-                    raise TypeError('coupMat data type is not complex, recommendation dtype=np.complex64')
-
-                if type(matrixData) == numpy.ndarray:
-                    matrixData = symmetrize(matrixData)
-                    if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
-                        triuFlat = float_array_as_int(numpy_array_to_triu_flat(matrixData))
-                        commandInput[MessageKeys.FLOAT_DATA_AS_INT] = True
-                    else:
-                        triuFlat = numpy_array_to_triu_flat(matrixData)
+            if type(matrix_data) == numpy.ndarray:
+                matrix_data = symmetrize(matrix_data)
+                if matrix_data.dtype == numpy.float32 or matrix_data.dtype == numpy.float64:
+                    triu_flat = float_array_as_int(numpy_array_to_triu_flat(matrix_data))
+                    command_input[MessageKeys.FLOAT_DATA_AS_INT] = True
                 else:
-                    validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
-                    if numpy.array(validationArr).any():
-                        raise(ValueError("The input must be a square matrix"))
-                    triuFlat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrixData)))
-                commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
-            elif edgeList is not None:
-                if type(edgeList) == numpy.ndarray:
-                    varCount = numpy.max(edgeList[:,0:2])
-                    edgeList = edgeList.tolist()
-                else:
-                    varCount = numpy.max(numpy.array(edgeList)[:,0:2])
-                if varCount > 10000 or varCount < 10:
-                    raise(ValueError("The total number of variables must be between 10-10000"))
-                commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
+                    triu_flat = numpy_array_to_triu_flat(matrix_data)
             else:
-                raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
+                validationArr = [len(matrix_data[i]) != var_count for i in range(var_count)]
+                if numpy.array(validationArr).any():
+                    raise(ValueError("The input must be a square matrix"))
+                triu_flat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrix_data)))
+            command_input[MessageKeys.QUBO_MATRIX] = triu_flat.tolist()
 
-            iid = self.apiClient.upload_command_input(commandInput, inputPath)
-            return iid, int(varCount)
+        elif edge_list is not None:
+            if type(edge_list) == numpy.ndarray:
+                var_count = numpy.max(edge_list[:,0:2])
+                edge_list = edge_list.tolist()
+            else:
+                var_count = numpy.max(numpy.array(edge_list)[:,0:2])
+            command_input[MessageKeys.QUBO_EDGE_LIST] = edge_list
 
+        else:
+            raise (ValueError("You must provide either a QUBO matrix or a QUBO edge list"))
+
+        try:
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, int(var_count)
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
             raise  e
 
 
-    def upload_lpu_coupmat_input(self, matrixData = None, edgeList = None, inputPath = None):
-        try:
-            commandInput = {}
-            if matrixData is not None:
-                varCount = len(matrixData)
-                if (varCount > 100 or varCount < 5):
-                    raise(ValueError("The total number of variables must be between 5-100"))
-                if type(matrixData) == numpy.ndarray:
-                    if matrixData.dtype == numpy.complex64:
-                        a = matrixData.flatten()
-                        # Combine real and imaginary parts for serialization
-                        real_part = a.real.tolist()
-                        imag_part = a.imag.tolist()
-                        combined = {'real': real_part, 'imag': imag_part,'size':varCount}
-                        commandInput[MessageKeys.COUPMAT_MATRIX] = combined
+    def upload_lpu_coupmat_input(self, matrix_data = None, edge_list = None, input_path = None):
+        command_input = {}
+        if matrix_data is not None:
+            var_count = len(matrix_data)
+            if type(matrix_data) == numpy.ndarray:
+                if matrix_data.dtype == numpy.complex64:
+                    a = matrix_data.flatten()
+                    # Combine real and imaginary parts for serialization
+                    real_part = a.real.tolist()
+                    imag_part = a.imag.tolist()
+                    combined = {'real': real_part, 'imag': imag_part,'size':var_count}
+                    command_input[MessageKeys.COUPMAT_MATRIX] = combined
 
-                    else:
-                         raise(ValueError("The input must complex64 type"))
                 else:
-                    raise(ValueError("The input must be a numpy array"))
+                        raise(ValueError("The input must complex64 type"))
+            else:
+                raise(ValueError("The input must be a numpy array"))
+        elif edge_list is not None:
+            raise (ValueError("Edge List not supported as coup_matrix input"))
 
-            elif edgeList is not None:
-                raise Exception("Edge List not supported as Coupmat input")
-
-            iid = self.apiClient.upload_command_input(commandInput, inputPath)
-            return iid, int(varCount)
+        try:
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, int(var_count)
 
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")

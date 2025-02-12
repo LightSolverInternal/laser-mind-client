@@ -1,8 +1,15 @@
+####################################################################################################
+# This example describes a QUBO problem using an adjacency list. This is useful for sparse matrices.
+# The `solve_qubo` function is used with the following parameters:
+# - `edgeList`: The adjacency list representing the QUBO problem.
+# - `timeout`: The required time limit for the calculation in seconds.
+####################################################################################################
+
 from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here
-userToken = "<my_token>"
+userToken = "<TOKEN>"
 
 # Create a mock QUBO problem
 quboListData = [

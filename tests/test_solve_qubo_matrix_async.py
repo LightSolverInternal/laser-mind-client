@@ -1,9 +1,18 @@
+####################################################################################################
+# This example solves a QUBO problem asynchronously using the dLPU over LightSolver's platform.
+# Begin by creating a matrix to represent your QUBO problem.
+# The `solve_qubo` function is used with the following parameters:
+#    - `matrixData`: A 2D array representing the QUBO problem.
+#    - `timeout`: The desired time limit for the calculation in seconds.
+#    - `waitForSolution`: A boolean flag set to `False` to indicate non-blocking mode.
+####################################################################################################
+
 import numpy
 from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here
-userToken = "<my_token>"
+userToken = "<TOKEN>"
 
 # Create a mock QUBO problem
 quboProblemData = numpy.random.randint(-1, 2, (10,10))

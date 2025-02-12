@@ -32,14 +32,14 @@ class LaserMind:
     POLL_DELAY_SECS = 0.5
 
     def __init__(self,
-                 userToken = None
-                 logToConsole=True):
-        if userToken is None:
+                 user_token = None,
+                 log_to_console=True):
+        if user_token is None:
             raise Exception("the 'token' parameter cannot be None ")
 
         try:
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(userToken=userToken,logToConsole=logToConsole)
+            self.apiClient = LSAPIClient(user_token=user_token, log_to_console=log_to_console)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
@@ -56,115 +56,115 @@ class LaserMind:
         result = self.apiClient.SendResultRequest(solutionId, timestamp)
         return result
 
-    def get_solution_sync(self, requestInfo):
+    def get_solution_sync(self, request_info):
         """
         Waits for a solution to be available and downloads it.
 
-        - `requestInfo` : a dictionary containing 'id' and 'reqTime' keys needed for retrieving the solution.
+        - `request_info` : a dictionary containing 'id' and 'reqTime' keys needed for retrieving the solution.
         """
         for try_num in range(1, self.POLL_MAX_RETRIES):
-            result = self.get_solution_by_id(requestInfo['id'], requestInfo['reqTime'])
+            result = self.get_solution_by_id(request_info['id'], request_info['reqTime'])
             if result != None:
-                result["receivedTime"] = requestInfo["receivedTime"]
-                logging.info(f"got solution for {requestInfo}, try #{try_num}")
+                result["receivedTime"] = request_info["receivedTime"]
+                logging.info(f"got solution for {request_info}, try #{try_num}")
                 return result
             time.sleep((self.POLL_DELAY_SECS))
 
-        logging.warning(f"got timeout for {requestInfo}")
-        raise FileNotFoundError(f"Exceeded max retries when attempting to find {requestInfo['id']}")
+        logging.warning(f"got timeout for {request_info}")
+        raise FileNotFoundError(f"Exceeded max retries when attempting to find {request_info['id']}")
 
-    def make_command_input(self, matrixData = None, edgeList = None, timeout = 10):
+    def make_command_input(self, matrix_data = None, edge_list = None, timeout = 10):
         """
         Creates the message payload for a request input.
         """
-        commandInput = {}
+        command_input = {}
 
-        if matrixData is not None:
-            varCount = len(matrixData)
-            if varCount > 10000 or varCount < 10:
+        if matrix_data is not None:
+            var_count = len(matrix_data)
+            if var_count > 10000 or var_count < 10:
                 raise(ValueError("The total number of variables must be between 10-10000"))
-            if type(matrixData) == numpy.ndarray:
-                matrixData = symmetrize(matrixData)
-                if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
-                    triuFlat = float_array_as_int(numpy_array_to_triu_flat(matrixData))
-                    commandInput[MessageKeys.FLOAT_DATA_AS_INT] = True
+            if type(matrix_data) == numpy.ndarray:
+                matrix_data = symmetrize(matrix_data)
+                if matrix_data.dtype == numpy.float32 or matrix_data.dtype == numpy.float64:
+                    triu_flat = float_array_as_int(numpy_array_to_triu_flat(matrix_data))
+                    command_input[MessageKeys.FLOAT_DATA_AS_INT] = True
                 else:
-                    triuFlat = numpy_array_to_triu_flat(matrixData)
+                    triu_flat = numpy_array_to_triu_flat(matrix_data)
             else:
-                validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
+                validationArr = [len(matrix_data[i]) != var_count for i in range(var_count)]
                 if numpy.array(validationArr).any():
                     raise(ValueError("The input must be a square matrix"))
-                triuFlat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrixData)))
-            commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
-        elif edgeList is not None:
-            if type(edgeList) == numpy.ndarray:
-                varCount = numpy.max(edgeList[:,0:2])
-                edgeList = edgeList.tolist()
+                triu_flat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrix_data)))
+            command_input[MessageKeys.QUBO_MATRIX] = triu_flat.tolist()
+        elif edge_list is not None:
+            if type(edge_list) == numpy.ndarray:
+                var_count = numpy.max(edge_list[:,0:2])
+                edge_list = edge_list.tolist()
             else:
-                varCount = numpy.max(numpy.array(edgeList)[:,0:2])
-            if varCount > 10000 or varCount < 10:
+                var_count = numpy.max(numpy.array(edge_list)[:,0:2])
+            if var_count > 10000 or var_count < 10:
                 raise(ValueError("The total number of variables must be between 10-10000"))
-            commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
+            command_input[MessageKeys.QUBO_EDGE_LIST] = edge_list
         else:
             raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
 
-        commandInput[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
-        return commandInput, int(varCount)
+        command_input[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
+        return command_input, int(var_count)
 
-    def upload_qubo_input(self, matrixData = None, edgeList = None, timeout = 10, inputPath = None):
+    def upload_qubo_input(self, matrix_data = None, edge_list = None, timeout = 10, input_path = None):
         """
         Uploads the given input to the lightsolver cloud for later processing.
 
-        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
-        - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
+        - `matrix_data` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
+        - `edge_list` : (optional) The edge list describing Ising matrix of the target problem. if the matrix_data parameter is given, this parameter is ignored.
         - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
-        - `inputPath` : (optional) The the path to a pre-uploaded input file if not given a random string is used returned.
+        - `input_path` : (optional) The the path to a pre-uploaded input file if not given a random string is used returned.
 
         Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
         - `iid` : The id of the uploaded file.
-        - `varCount` : The amount number of variables of the problem.
+        - `var_count` : The amount number of variables of the problem.
 
         """
         try:
-            commandInput, varCount = self.make_command_input(matrixData, edgeList, timeout)
+            command_input, var_count = self.make_command_input(matrix_data, edge_list, timeout)
 
-            iid = self.apiClient.upload_command_input(commandInput, inputPath)
-            return iid, varCount
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, var_count
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
         except Exception as e:
                 raise  e
 
-    def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
+    def solve_qubo(self, matrix_data = None, edge_list = None, input_path = None, timeout = 10, wait_for_solution = True):
         """
         Solves a qubo problem using the optimized algorithm.
 
-        - `matrixData` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
-        - `edgeList` : (optional) The edge list describing Ising matrix of the target problem. if the matrixData parameter is given, this parameter is ignored.
-        - `inputPath` : (optional) The the path to a pre-uploaded input file, the upload can be done using the upload_qubo_input() method of this class.
+        - `matrix_data` : (optional) The matrix data of the target problem, must be a symmetric matrix. if given, the edge list in the vortex parameters is ignored.
+        - `edge_list` : (optional) The edge list describing Ising matrix of the target problem. if the matrix_data parameter is given, this parameter is ignored.
+        - `input_path` : (optional) The the path to a pre-uploaded input file, the upload can be done using the upload_qubo_input() method of this class.
         - `timeout` : (optional) the running timeout, in seconds for the algorithm, must be in the range 0.001 - 60 (default: 10).
-        - `waitForSolution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
+        - `wait_for_solution` : (optional) When set to True it waits for the solution, else returns with retrieval info (default: True).
 
         Returns a dictionary with the 'data' key being a dictionary representing the solution using the following keys:
         - `objval` : The objective value.
         - `solution` : The optimal solution found.
         """
         command_name = MessageKeys.QUBO_COMMAND_NAME
-        if inputPath == None:
-            iid, varCount = self.upload_qubo_input(matrixData, edgeList, timeout)
+        if input_path == None:
+            iid, var_count = self.upload_qubo_input(matrix_data, edge_list, timeout)
         else:
-            iid = inputPath
-            varCount = 10000
+            iid = input_path
+            var_count = 10000
 
         requestInput = {
             MessageKeys.QUBO_INPUT_PATH : iid,
             MessageKeys.ALGO_RUN_TIMEOUT : timeout,
-            MessageKeys.VAR_COUNT_KEY : varCount
+            MessageKeys.VAR_COUNT_KEY : var_count
             }
         try:
             response = self.apiClient.SendCommandRequest(command_name, requestInput)
             logging.info(f"got response {response}")
-            if not waitForSolution:
+            if not wait_for_solution:
                 return response
             result = self.get_solution_sync(response)
             return result
@@ -186,16 +186,16 @@ class LaserMind:
         return response
 
 
-    def solve_qubo_lpu(self, matrixData = None, edgeList = None, waitForSolution = True, inputPath = None, num_runs = 1 ):
-        if inputPath == None:
-            iid, varCount = self.upload_lpu_qubo_input(matrixData, edgeList)
+    def solve_qubo_lpu(self, matrix_data = None, edge_list = None, wait_for_solution = True, input_path = None, num_runs = 1 ):
+        if input_path == None:
+            iid, var_count = self.upload_lpu_qubo_input(matrix_data, edge_list)
         else:
-            iid = inputPath
-            varCount = 100
+            iid = input_path
+            var_count = 100
 
         requestInput = {
             MessageKeys.QUBO_INPUT_PATH : iid,
-            MessageKeys.VAR_COUNT_KEY : varCount,
+            MessageKeys.VAR_COUNT_KEY : var_count,
             MessageKeys.LPU_NUM_RUNS : num_runs
             }
 
@@ -207,7 +207,7 @@ class LaserMind:
             raise  e
 
         logging.info(f"got response {response}")
-        if not waitForSolution:
+        if not wait_for_solution:
             return response
 
         try:
@@ -219,28 +219,28 @@ class LaserMind:
             raise  e
 
 
-    def solve_coupling_matrix_lpu(self, matrixData = None, edgeList = None, waitForSolution = True, inputPath = None, num_runs = 1):
-        if inputPath == None:
-            iid, varCount = self.upload_lpu_coupmat_input(matrixData, edgeList)
+    def solve_coupling_matrix_lpu(self, matrix_data = None, edge_list = None, wait_for_solution = True, input_path = None, num_runs = 1):
+        if input_path == None:
+            iid, var_count = self.upload_lpu_coup_matrix_input(matrix_data, edge_list)
         else:
-            iid = inputPath
-            varCount = 100
+            iid = input_path
+            var_count = 100
 
         requestInput = {
             MessageKeys.QUBO_INPUT_PATH : iid,
-            MessageKeys.VAR_COUNT_KEY : varCount,
+            MessageKeys.VAR_COUNT_KEY : var_count,
             MessageKeys.LPU_NUM_RUNS : num_runs
             }
 
         try:
-            response = self.apiClient.SendCommandRequest("LPUSolver_Coupmat", requestInput)
+            response = self.apiClient.SendCommandRequest("LPUSolver_coup_matrix", requestInput)
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:
             raise  e
 
         logging.info(f"got response {response}")
-        if not waitForSolution:
+        if not wait_for_solution:
             return response
 
         try:
@@ -252,74 +252,68 @@ class LaserMind:
             raise  e
 
 
-    def upload_lpu_qubo_input(self, matrixData = None, edgeList = None, inputPath = None):
-        try:
-            commandInput = {}
-            if matrixData is not None:
-                varCount = len(matrixData)
-                if (varCount > 100 or varCount < 5):
-                    raise(ValueError("The total number of variables must be between 5-100"))
+    def upload_lpu_qubo_input(self, matrix_data = None, edge_list = None, input_path = None):
+        command_input = {}
+        if matrix_data is not None:
+            var_count = len(matrix_data)
 
-                if type(matrixData) == numpy.ndarray:
-                    matrixData = symmetrize(matrixData)
-                    if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
-                        triuFlat = float_array_as_int(numpy_array_to_triu_flat(matrixData))
-                        commandInput[MessageKeys.FLOAT_DATA_AS_INT] = True
-                    else:
-                        triuFlat = numpy_array_to_triu_flat(matrixData)
+            if type(matrix_data) == numpy.ndarray:
+                matrix_data = symmetrize(matrix_data)
+                if matrix_data.dtype == numpy.float32 or matrix_data.dtype == numpy.float64:
+                    triu_flat = float_array_as_int(numpy_array_to_triu_flat(matrix_data))
+                    command_input[MessageKeys.FLOAT_DATA_AS_INT] = True
                 else:
-                    validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
-                    if numpy.array(validationArr).any():
-                        raise(ValueError("The input must be a square matrix"))
-                    triuFlat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrixData)))
-                commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
-            elif edgeList is not None:
-                if type(edgeList) == numpy.ndarray:
-                    varCount = numpy.max(edgeList[:,0:2])
-                    edgeList = edgeList.tolist()
-                else:
-                    varCount = numpy.max(numpy.array(edgeList)[:,0:2])
-                if varCount > 100 or varCount < 5:
-                    raise(ValueError("The total number of variables must be between 5-100"))
-                commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
+                    triu_flat = numpy_array_to_triu_flat(matrix_data)
             else:
-                raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
+                validationArr = [len(matrix_data[i]) != var_count for i in range(var_count)]
+                if numpy.array(validationArr).any():
+                    raise(ValueError("The input must be a square matrix"))
+                triu_flat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrix_data)))
+            command_input[MessageKeys.QUBO_MATRIX] = triu_flat.tolist()
 
-            iid = self.apiClient.upload_command_input(commandInput, inputPath)
-            return iid, int(varCount)
+        elif edge_list is not None:
+            if type(edge_list) == numpy.ndarray:
+                var_count = numpy.max(edge_list[:,0:2])
+                edge_list = edge_list.tolist()
+            else:
+                var_count = numpy.max(numpy.array(edge_list)[:,0:2])
+            command_input[MessageKeys.QUBO_EDGE_LIST] = edge_list
 
+        else:
+            raise (ValueError("You must provide either a QUBO matrix or a QUBO edge list"))
+
+        try:
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, int(var_count)
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
             raise  e
 
 
-    def upload_lpu_coupmat_input(self, matrixData = None, edgeList = None, inputPath = None):
-        try:
-            commandInput = {}
-            if matrixData is not None:
-                varCount = len(matrixData)
-                if (varCount > 100 or varCount < 5):
-                    raise(ValueError("The total number of variables must be between 5-100"))
-                if type(matrixData) == numpy.ndarray:
-                    if matrixData.dtype == numpy.complex64:
-                        a = matrixData.flatten()
-                        # Combine real and imaginary parts for serialization
-                        real_part = a.real.tolist()
-                        imag_part = a.imag.tolist()
-                        combined = {'real': real_part, 'imag': imag_part,'size':varCount}
-                        commandInput[MessageKeys.COUPMAT_MATRIX] = combined
+    def upload_lpu_coup_matrix_input(self, matrix_data = None, edge_list = None, input_path = None):
+        command_input = {}
+        if matrix_data is not None:
+            var_count = len(matrix_data)
+            if type(matrix_data) == numpy.ndarray:
+                if matrix_data.dtype == numpy.complex64:
+                    a = matrix_data.flatten()
+                    # Combine real and imaginary parts for serialization
+                    real_part = a.real.tolist()
+                    imag_part = a.imag.tolist()
+                    combined = {'real': real_part, 'imag': imag_part,'size':var_count}
+                    command_input[MessageKeys.coup_matrix_MATRIX] = combined
 
-                    else:
-                         raise(ValueError("The input must complex64 type"))
                 else:
-                    raise(ValueError("The input must be a numpy array"))
+                        raise(ValueError("The input must complex64 type"))
+            else:
+                raise(ValueError("The input must be a numpy array"))
+        elif edge_list is not None:
+            raise (ValueError("Edge List not supported as coup_matrix input"))
 
-            elif edgeList is not None:
-                raise Exception("Edge List not supported as Coupmat input")
-
-            iid = self.apiClient.upload_command_input(commandInput, inputPath)
-            return iid, int(varCount)
+        try:
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, int(var_count)
 
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")

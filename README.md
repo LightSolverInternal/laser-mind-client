@@ -28,8 +28,8 @@ A dictionary with the following fields:
 ```
 
 ### Synchronous and Asynchronous Usage
-- **Synchronous Mode (Default):** The `waitForSolution` flag is set to **True** by default. The function blocks operations until a result is received.
-- **Asynchronous Mode:** Set `waitForSolution` to **False**. The function returns immediately with a token object, allowing the script to continue while the server processes the QUBO problem.
+- **Synchronous Mode (Default):** The `wait_for_solution` flag is set to **True** by default. The function blocks operations until a result is received.
+- **Asynchronous Mode:** Set `wait_for_solution` to **False**. The function returns immediately with a token object, allowing the script to continue while the server processes the QUBO problem.
 
 ### Fetching Account Details
 The `get_account_details()` function returns a python dictionary containing the following keys:
@@ -77,7 +77,7 @@ For further assistance with setup or connection issues, contact support@lightsol
 ```sh
     cd lightsolver_onboarding
     open test_solve_qubo_matrix.py file for edit
-    enter the provided TOKEN in line 6 (userToken = "<my_token>")
+    enter the provided TOKEN in line 6 (user_token = "<my_token>")
     python ./tests/test_solve_qubo_matrix.py
 ```
 
@@ -106,7 +106,7 @@ For further assistance with setup or connection issues, contact support@lightsol
 ```sh
     cd lightsolver_onboarding
     open test_solve_qubo_matrix.py file for edit
-    enter the provided TOKEN in line 6 (userToken = "<my_token>")
+    enter the provided TOKEN in line 6 (user_token = "<my_token>")
     python3 ./tests/test_solve_qubo_matrix.py
 ```
 
@@ -118,9 +118,9 @@ Subsequent calls by the same user are similarly secure and authenticated.
 ## Usage
 To begin solving any QUBO problem:
 1. Create an instance of the ```LaserMind``` class. This class represents the client that requests solutions from the LightSolver Cloud.
-2. By default, all logs are printed to laser-mind.log file in current directory and to console. Output to console can be disabled by setting ```logToConsole=False```
+2. By default, all logs are printed to laser-mind.log file in current directory and to console. Output to console can be disabled by setting ```log_to_console=False```
 3. Call the ```solve_qubo``` function using either a matrix or an adjacency list.
-**Note:** You may either provide a value for ```matrixData``` or for ```edgeList```, but not both.
+**Note:** You may either provide a value for ```matrixData``` or for ```edge_list```, but not both.
 
 ## Examples
 Find examples of every feature in laser-mind-client under the "tests/" directory.

@@ -6,10 +6,10 @@
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here
-userToken = "<my_token>"
+user_token = "<TOKEN>"
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=userToken)
+lsClient = LaserMind(user_token=user_token)
 
 res = lsClient.get_account_details()
 

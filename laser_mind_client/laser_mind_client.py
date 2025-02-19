@@ -305,11 +305,11 @@ class LaserMind:
                     command_input[MessageKeys.COUPMAT_MATRIX] = combined
 
                 else:
-                        raise(ValueError("The input must complex64 type"))
+                        raise(TypeError("The input must complex64 type"))
             else:
-                raise(ValueError("The input must be a numpy array"))
+                raise(TypeError("The input must be a numpy array"))
         elif edge_list is not None:
-            raise (ValueError("Edge List not supported as coup_matrix input"))
+            raise (TypeError("Edge List not supported as coup_matrix input"))
 
         try:
             iid = self.apiClient.upload_command_input(command_input, input_path)

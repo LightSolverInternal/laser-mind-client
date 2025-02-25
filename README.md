@@ -1,16 +1,18 @@
-
 ## LightSolver Client
 The LightSolver Client is a Python package designed to interface with the LightSolver Cloud Platform to facilitate solving problems on LightSolver's LPU (Laser Processing Unit) and dLPU (digital-LPU) solvers.
 
 This package is designated for early access to features during the development process and serves as a prototype for future versions of the production LightSolver Client.
 
 ## Features
-- **QUBO Problem Solving:** The `solve_qubo` function accepts a QUBO problem, represented either as a 2D array (matrix) or an adjacency list, and returns the solution using the dLPU.
+- **QUBO DLPU Problem Solving:** The `solve_qubo` function accepts a QUBO problem, represented either as a 2D array (matrix) or an adjacency list, and returns the solution using the dLPU.
 - **Synchronous and Asynchronous Operation:** Users can choose between blocking (synchronous) and non-blocking (asynchronous) modes during problem solving.
 - **Fetching Account Details:** Account information is available through this client. Includes: email, dLPU solve time remaining, dLPU variable count ("spin") limit and the user's expiration date.
 - **Flexible Installation:** Compatible with both Windows and MacOS systems.
+- **LPU Solvers:** Dedicated methods for solving problems on the Laser Processing Unit (LPU):
+  - `solve_qubo_lpu`: Solves QUBO problems on the LPU
+  - `solve_coupling_matrix_lpu`: Solves coupling matrix problems on the LPU
 
-### Solve QUBO
+### Solve QUBO DLPU
 The `solve_qubo` function solves QUBO problems, either represented by a 2D array (matrix) or by an adjacency list, over the dLPU. For code samples, see the /tests directory.
 
 #### Input Matrix Validity
@@ -25,6 +27,47 @@ A dictionary with the following fields:
 - 'objval: The objective value of the solution.
 - 'solverRunningTime': Time spent by the solver to calculate the problem.
 - 'receivedTime': Timestamp when the request was received by the server.
+```
+
+### Solve Coupling Matrix LPU
+The `solve_coupling_matrix_lpu` function solves coupling matrix problems on the LPU.
+
+#### Input Matrix Requirements
+- Must be a numpy array of type `numpy.complex64`
+- Matrix dimensions must be between 5x5 and 100x100
+- The matrix represents coupling strengths between lasers
+
+#### Return Value
+A dictionary containing:
+```
+- 'phase_difference': Phase differences between nodes
+- 'energy_problem': Energy of the solution
+- 'contrast_problem': Contrast measure of the solution
+- 'solverRunningTime': Time spent calculating the solution on the LPU
+```
+
+### Solve QUBO LPU
+The `solve_qubo_lpu` function solves QUBO problems on the Laser Processing Unit (LPU).
+
+#### Input Requirements
+- Matrix dimensions must be between 5x5 and 100x100
+- Problem can be specified using one of these parameters:
+  - `matrixData`: A 2D array (matrix) of int or float values
+  - `edgeList`: An adjacency list in the format `[[i, j, value], ...]` where:
+    - `i`, `j`: Node indices (1-based)
+    - `value`: Weight of the connection between nodes i and j
+- The matrix must be symmetric (will be symmetrized if not)
+
+#### Additional Parameters
+- `num_runs`: Number of times to run the solver (default: 1)
+- `waitForSolution`: Whether to wait for the solution (default: True). When False, the function will return immediately with a token object, allowing the script to continue while the server processes the QUBO problem.
+
+#### Return Value
+A dictionary containing:
+```
+- 'data': A dictionary containing:
+  - 'solution': The solution as a list of binary values
+  - 'solverRunningTime': Time spent calculating the solution on the LPU
 ```
 
 ### Synchronous and Asynchronous Usage

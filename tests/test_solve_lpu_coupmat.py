@@ -1,15 +1,22 @@
+####################################################################################################
+# This example creates a Coupling matrix problem and solves it using the LPU over LightSolver's Platform.
+# The `solve_coupling_matrix_lpu` function is used with the following parameters:
+# - ```matrixData```: A 2D array representing the coupmat problem.
+# - ```num_runs ```: The required number or calculation runs, default 1.
+####################################################################################################
+
 import numpy
-from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
-size = 25
+userToken = "<TOKEN>"
+
+# Generate a coupling matrix
+size = 15
 coupMat = 0.5 * numpy.eye( size ,dtype=numpy.complex64)
 coupling = (1-0.5)/(2)
 for i in range(size - 1):
     coupMat[i,i+1] = coupling
     coupMat[i+1,i] = coupling
-
-userToken = "<my_token>"
 
 # Connect to the LightSolver Cloud
 lsClient = LaserMind(userToken=userToken)

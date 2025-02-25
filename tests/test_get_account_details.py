@@ -1,3 +1,8 @@
+####################################################################################################
+# This example connects to the LightSolver Cloud using the LaserMind client and retrieves account details.
+# The `get_account_details` method fetches information such as username, spin limit, expiration date, and credits.
+####################################################################################################
+
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here

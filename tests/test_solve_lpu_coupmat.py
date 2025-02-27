@@ -24,10 +24,9 @@ lsClient = LaserMind(userToken=userToken)
 # Request a LPU solution to the CoupMat problem
 res = lsClient.solve_coupling_matrix_lpu(matrixData = coupMat)
 
-assert 'data' in res
-assert  'phase_difference' in res['data']
-assert  'energy_problem'   in res['data']
-assert  'contrast_problem' in res['data']
-assert  'solverRunningTime' in res['data']
+# Verify response format
+assert 'command' in res, "Missing 'command' field"
+assert 'data' in res, "Missing 'data' field"
+assert 'solutions' in res['data'], "Missing 'solutions' field"
 
 print(f"Test PASSED, response is: \n{res}")

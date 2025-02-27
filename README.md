@@ -59,7 +59,6 @@ A dictionary containing:
 - 'reqTime': Timestamp when the request arrived at the server
 - 'id': Unique identifier for this request
 - 'userId': ID of the requesting user
-- 'user': Email of the requesting user
 - 'receivedTime': Timestamp when the request was received by the server
 ```
 
@@ -90,7 +89,6 @@ A dictionary containing:
 - 'reqTime': Timestamp when the request arrived at the server
 - 'id': Unique identifier for this request
 - 'userId': ID of the requesting user
-- 'user': Email of the requesting user
 - 'receivedTime': Timestamp when the request was received by the server
 ```
 

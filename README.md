@@ -29,23 +29,6 @@ A dictionary with the following fields:
 - 'receivedTime': Timestamp when the request was received by the server.
 ```
 
-### Solve Coupling Matrix LPU
-The `solve_coupling_matrix_lpu` function solves coupling matrix problems on the LPU.
-
-#### Input Matrix Requirements
-- Must be a numpy array of type `numpy.complex64`
-- Matrix dimensions must be between 5x5 and 100x100
-- The matrix represents coupling strengths between lasers
-
-#### Return Value
-A dictionary containing:
-```
-- 'phase_difference': Phase differences between nodes
-- 'energy_problem': Energy of the solution
-- 'contrast_problem': Contrast measure of the solution
-- 'solverRunningTime': Time spent calculating the solution on the LPU
-```
-
 ### Solve QUBO LPU
 The `solve_qubo_lpu` function solves QUBO problems on the Laser Processing Unit (LPU).
 
@@ -65,10 +48,52 @@ The `solve_qubo_lpu` function solves QUBO problems on the Laser Processing Unit 
 #### Return Value
 A dictionary containing:
 ```
+- 'command': The solver command type ('LPU')
 - 'data': A dictionary containing:
-  - 'solution': The solution as a list of binary values
-  - 'solverRunningTime': Time spent calculating the solution on the LPU
+  - 'solutions': A list of solution dictionaries, one per run, each containing:
+    - 'solution': The solution as a list of binary values
+    - 'objval': The objective value of the solution
+    - 'solverRunningTime': Time spent calculating the solution on the LPU
+  - 'solution_warnings': (optional) Warning message, for example, if the problem is at the performance boundary of the LPU
+- 'creation_time': Timestamp when the result was created
+- 'reqTime': Timestamp when the request arrived at the server
+- 'id': Unique identifier for this request
+- 'userId': ID of the requesting user
+- 'user': Email of the requesting user
+- 'receivedTime': Timestamp when the request was received by the server
 ```
+
+### Solve Coupling Matrix LPU
+The `solve_coupling_matrix_lpu` function solves coupling matrix problems on the LPU.
+
+#### Input Matrix Requirements
+- Must be a numpy array of type `numpy.complex64`
+- Matrix dimensions must be between 5x5 and 100x100
+- The matrix represents coupling strengths between lasers
+
+#### Return Value
+A dictionary containing:
+```
+- 'command': The solver command type ('LPU')
+- 'data': A dictionary containing:
+  - 'solutions': A list of solution dictionaries, one per run, each containing:
+    - 'phase_problem': List of phase differences between nodes
+    - 'energy_problem': List of energy values for the solution
+    - 'contrast_problem': List of contrast measures for the solution
+    - 'solverRunningTime': Time spent calculating the solution on the LPU
+  - 'warnings': (optional) Dictionary containing measurements that could indicate a problematic solution, for example:
+    - 'Contrast reference': Contrast of laser pairs in the reference run
+    - 'Energy reference': List of laser pair energy values in the reference run
+    - 'Contrast problem': Contrast of laser pairs in the problem run
+    - 'Energy problem': List of laser pair energy values in the problem run
+- 'creation_time': Timestamp when the result was created
+- 'reqTime': Timestamp when the request arrived at the server
+- 'id': Unique identifier for this request
+- 'userId': ID of the requesting user
+- 'user': Email of the requesting user
+- 'receivedTime': Timestamp when the request was received by the server
+```
+
 
 ### Synchronous and Asynchronous Usage
 - **Synchronous Mode (Default):** The `waitForSolution` flag is set to **True** by default. The function blocks operations until a result is received.
@@ -164,6 +189,20 @@ To begin solving any QUBO problem:
 2. By default, all logs are printed to laser-mind.log file in current directory and to console. Output to console can be disabled by setting ```logToConsole=False```
 3. Call the ```solve_qubo``` function using either a matrix or an adjacency list.
 **Note:** You may either provide a value for ```matrixData``` or for ```edgeList```, but not both.
+
+### Error Handling
+All functions in the LightSolver Client will raise exceptions when errors occur. These exceptions include:
+- Connection errors (e.g., "No access to LightSolver Cloud")
+- Input validation errors (e.g., invalid matrix dimensions)
+- Internal server errors
+
+It's recommended to wrap API calls in try-except blocks to handle potential errors gracefully:
+```python
+try:
+    result = client.solve_coupling_matrix_lpu(matrixData=coupling_matrix)
+except Exception as e:
+    print(f"Error solving problem: {str(e)}")
+```
 
 ## Examples
 Find examples of every feature in laser-mind-client under the "tests/" directory.

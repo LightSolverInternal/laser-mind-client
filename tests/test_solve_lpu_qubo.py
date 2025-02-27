@@ -6,7 +6,6 @@
 ####################################################################################################
 
 import numpy
-from laser_mind_client_meta import MessageKeys
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here
@@ -24,7 +23,9 @@ lsClient = LaserMind(userToken=userToken)
 # Request a LPU solution to the QUBO problem
 res = lsClient.solve_qubo_lpu(matrixData = quboProblemData)
 
-assert 'data' in res
-assert MessageKeys.SOLUTION in res['data'], "Test FAILED, response is not in expected format"
+# Verify response format
+assert 'command' in res, "Missing 'command' field"
+assert 'data' in res, "Missing 'data' field"
+assert 'solutions' in res['data'], "Missing 'solutions' field"
 
 print(f"Test PASSED, response is: \n{res}")

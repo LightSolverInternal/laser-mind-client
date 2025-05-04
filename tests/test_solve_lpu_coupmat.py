@@ -8,7 +8,7 @@
 import numpy
 from laser_mind_client import LaserMind
 
-userToken = "<TOKEN>"
+userToken = "f4ALtwB+zTt1lXJKZdtpIP9lliJUY8I9Oj7W+plCWw6NS3t4nT2aQcF/7scNWCbwNm79sY+acj5SbuToC4bTunyGtmGtDn2qkse1fzz0Y/9LDqxL/P4U/CtkD0qeFDGI"
 
 # Generate a coupling matrix
 size = 15

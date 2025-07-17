@@ -14,7 +14,7 @@ requires-python = ">=3.8"
 dependencies = [
   'numpy==1.26.4',
   'laser-mind-client-meta>=0.6.1',
-  'ls_api_clients>=0.24.0',
+  'ls_api_clients>=0.26.0',
   'ls-packers>=0.2.0'
 ]
 classifiers = [

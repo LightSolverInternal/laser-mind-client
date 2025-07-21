@@ -34,8 +34,8 @@ class LaserMind:
     def __init__(self,
                  userToken = None,
                  logToConsole=True):
-        if userToken is None:
-            raise Exception("the 'token' parameter cannot be None ")
+        if userToken is None or userToken == "":
+            raise Exception("the 'userToken' parameter cannot be empty")
 
         try:
             logging.info('LightSolver connection init started')

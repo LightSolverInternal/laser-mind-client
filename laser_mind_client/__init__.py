@@ -1,2 +1,2 @@
 from laser_mind_client.laser_mind_client import LaserMind
-__all__ = ["LaserMind"]
+__all__ = ["LaserMind", "lib"]

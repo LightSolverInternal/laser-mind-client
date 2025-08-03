@@ -32,14 +32,20 @@ class LaserMind:
     POLL_DELAY_SECS = 0.5
 
     def __init__(self,
-                 userToken = None,
+                 userToken=None,
+                 pathToRefreshTokenFile=None,
                  logToConsole=True):
-        if userToken is None or userToken == "":
-            raise Exception("the 'userToken' parameter cannot be empty")
+        refresh_token = None
+        if pathToRefreshTokenFile:
+            if os.path.exists(pathToRefreshTokenFile):
+                with open(pathToRefreshTokenFile) as file:
+                    refresh_token = file.read()
+            else:
+                raise Exception("The pathToRefreshTokenFile parameter is expected to point to a valid file.")
 
         try:
             logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(usertoken = userToken, logToConsole = logToConsole)
+            self.apiClient = LSAPIClient(usertoken = userToken, refresh_token = refresh_token, logToConsole = logToConsole)
             logging.info('LightSolver connection init finished')
         except requests.exceptions.ConnectionError as e:
             raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")

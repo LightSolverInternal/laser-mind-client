@@ -30,6 +30,18 @@ def deserialize_complex_array(data: dict) -> numpy.ndarray:
     imag = numpy.array(data['imag'], dtype=numpy.float32)
     return real + 1j * imag
 
+def deserialize_complex_matrix(raw_data: dict) -> numpy.ndarray:
+    """
+    Takes a dictionary with 'real' and 'imag' keys and returns a numpy.complex64 matrix.
+    """
+
+    reconstructed = numpy.array(raw_data['real']) + 1j * numpy.array(raw_data['imag'])
+    try:
+        raw_matrix = reconstructed.reshape(raw_data['size'],raw_data['size'])
+    except Exception as e:
+        logging.error(f"Complex matrix  reconstruction failed for size {raw_data['size']} : {str(e)}")
+        raise e
+    return raw_matrix
 
 logging.basicConfig(
     filename="laser-mind.log",
@@ -247,7 +259,18 @@ class LaserMind:
             raise  e
 
 
-    def solve_coupling_matrix_lpu(self, matrixData = None, edgeList = None, waitForSolution = True, inputPath = None, num_runs = 1):
+    def solve_coupling_matrix_lpu(self,
+                                  matrixData = None,
+                                  edgeList = None,
+                                  waitForSolution = True,
+                                  inputPath = None,
+                                  num_runs = 1,
+                                  average_over = 1,
+                                  exposure_time= 600,
+                                  num_neighbors = 1,
+                                  effective_coupmat_translation_accuracy = 10.0,
+                                  effective_coupmat_translation_time = 0.0
+                                  ):
         if inputPath == None:
             iid, varCount = self.upload_lpu_coupmat_input(matrix_data= matrixData, edge_list = edgeList)
         else:
@@ -257,7 +280,12 @@ class LaserMind:
         requestInput = {
             MessageKeys.QUBO_INPUT_PATH : iid,
             MessageKeys.VAR_COUNT_KEY : varCount,
-            MessageKeys.LPU_NUM_RUNS : num_runs
+            MessageKeys.LPU_NUM_RUNS : num_runs,
+            MessageKeys.LPU_AVERAGE_OVER : average_over,
+            MessageKeys.LPU_COUPMAT_EXPOSURE_MUS : exposure_time,
+            MessageKeys.LPU_COUPMAT_NUM_NEIGHBORS : num_neighbors,
+            MessageKeys.LPU_COUPMAT_ETA : effective_coupmat_translation_accuracy,
+            MessageKeys.LPU_COUPMAT_ETT : effective_coupmat_translation_time
             }
 
         try:
@@ -273,6 +301,8 @@ class LaserMind:
 
         try:
             result = self.get_solution_sync(response)
+            if "effective_coupmat" in result['data']:
+                result['data']['effective_coupmat'] = deserialize_complex_matrix(result['data']['effective_coupmat'])
             return result
         except requests.exceptions.ConnectionError   as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")

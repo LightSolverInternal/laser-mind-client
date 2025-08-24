@@ -40,7 +40,7 @@ def deserialize_complex_matrix(raw_data: dict) -> numpy.ndarray:
         raw_matrix = reconstructed.reshape(raw_data['size'],raw_data['size'])
     except Exception as e:
         logging.error(f"Complex matrix  reconstruction failed for size {raw_data['size']} : {str(e)}")
-
+        raise e
     return raw_matrix
 
 logging.basicConfig(

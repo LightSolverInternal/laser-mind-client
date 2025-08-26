@@ -8,21 +8,21 @@
 import numpy
 from laser_mind_client import LaserMind
 
-userToken = "<TOKEN>"
+user_token = "<TOKEN>"
 
 # Generate a coupling matrix
 size = 15
-coupMat = 0.5 * numpy.eye( size ,dtype=numpy.complex64)
-coupling = (1-0.5)/(2)
+coupling_matrix = 0.5 * numpy.eye(size, dtype=numpy.complex64)
+coupling = (1-0.5)/2
 for i in range(size - 1):
-    coupMat[i,i+1] = coupling
-    coupMat[i+1,i] = coupling
+    coupling_matrix[i,i+1] = coupling
+    coupling_matrix[i+1,i] = coupling
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=userToken)
+lsClient = LaserMind(userToken=user_token)
 
 # Request a LPU solution to the CoupMat problem
-res = lsClient.solve_coupling_matrix_lpu(matrixData = coupMat)
+res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)
 
 # Verify response format
 assert 'command' in res, "Missing 'command' field"

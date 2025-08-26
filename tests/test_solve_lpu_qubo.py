@@ -9,19 +9,19 @@ import numpy
 from laser_mind_client import LaserMind
 
 # Enter your TOKEN here
-userToken = "<TOKEN>"
+user_token = "<TOKEN>"
 
 # Create a mock QUBO problem
-quboProblemData = numpy.random.randint(-1, 2, (10,10))
+qubo_problem_data = numpy.random.randint(-1, 2, (10,10))
 
 # Symmetrize our matrix
-quboProblemData = (quboProblemData + quboProblemData.T) // 2
+qubo_problem_data = (qubo_problem_data + qubo_problem_data.T) // 2
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=userToken)
+lsClient = LaserMind(userToken=user_token)
 
 # Request a LPU solution to the QUBO problem
-res = lsClient.solve_qubo_lpu(matrixData = quboProblemData)
+res = lsClient.solve_qubo_lpu(matrixData = qubo_problem_data)
 
 # Verify response format
 assert 'command' in res, "Missing 'command' field"

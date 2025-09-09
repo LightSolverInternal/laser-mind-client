@@ -1,6 +1,5 @@
 import numpy as np
 from laser_mind_client import LaserMind
-# from ls_lib_utils import *
 from lightsolver_lib import *
 
 

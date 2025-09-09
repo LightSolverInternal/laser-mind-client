@@ -1,7 +1,8 @@
 import numpy
 from laser_mind_client import LaserMind
+import os
 
-userToken = "<TOKEN>"
+pathToTokenFile = os.path.join(os.path.dirname(__file__), "lightsolver-token.txt")
 
 size = 6
 coupling_matrix6 = 0.5 * numpy.eye(size, dtype=numpy.complex64)
@@ -19,7 +20,7 @@ for i in range(size - 1):
 
 def test_solve_coupmat_sanity_sim_lpu():
     # matrix in range, but not allowed for default user
-    lsClient = LaserMind(userToken)
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
     res = lsClient.solve_coupling_matrix_sim_lpu(matrix_data=coupling_matrix6, num_runs=3, num_iterations=10, rounds_per_record=5)
     print(res)
 
@@ -29,10 +30,11 @@ def test_solve_coupmat_sanity_sim_lpu():
     assert 'final_states' in res['data']['result']
     assert 'record_states' in res['data']['result']
     assert 'record_gains' in res['data']['result']
+    print("Test PASSED")
 
 
 def test_solve_coupmat_sanity_1000_sim_lpu():
-    lsClient = LaserMind(userToken)
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
     res = lsClient.solve_coupling_matrix_sim_lpu(matrix_data=coupling_matrix1000, num_runs=1, num_iterations=100, rounds_per_record=10)
     print(res)
 
@@ -45,7 +47,7 @@ def test_solve_coupmat_sanity_1000_sim_lpu():
 
 
 def test_solve_coupmat_sanity_sim_lpu_start_state():
-    lsClient = LaserMind(userToken)
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
     start_states = [[1.0000000e+00+0.0000000e+00j, 3.1520671e-05-6.6747067e-05j,
                      3.2637545e-04+1.3825409e-05j, 6.6705397e-04+5.1987998e-04j,
                      -1.7934688e-04-9.9081466e-05j, -7.9448699e-05+2.8152767e-04j],
@@ -72,7 +74,7 @@ def test_solve_coupmat_sanity_sim_lpu_start_state():
 
 def test_solve_coupmat_sanity_sim_lpu_gain_info():
     # matrix in range, but not allowed for default user
-    lsClient = LaserMind(userToken)
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
     res = lsClient.solve_coupling_matrix_sim_lpu(matrix_data=coupling_matrix6,
                                                num_runs=1,
                                                num_iterations=2,
@@ -90,3 +92,6 @@ def test_solve_coupmat_sanity_sim_lpu_gain_info():
     assert 'final_states' in res['data']['result']
     assert 'record_states' in res['data']['result']
     assert 'record_gains' in res['data']['result']
+
+if __name__ == "__main__":
+    test_solve_coupmat_sanity_sim_lpu()

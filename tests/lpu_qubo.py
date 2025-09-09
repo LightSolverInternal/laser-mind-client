@@ -6,10 +6,10 @@
 ####################################################################################################
 
 import numpy
+import os
 from laser_mind_client import LaserMind
 
-# Enter your TOKEN here
-user_token = "<TOKEN>"
+pathToTokenFile = os.path.join(os.path.dirname(__file__), "lightsolver-token.txt")
 
 # Create a mock QUBO problem
 qubo_problem_data = numpy.random.randint(-1, 2, (10,10))
@@ -18,7 +18,7 @@ qubo_problem_data = numpy.random.randint(-1, 2, (10,10))
 qubo_problem_data = (qubo_problem_data + qubo_problem_data.T) // 2
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=user_token)
+lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
 # Request a LPU solution to the QUBO problem
 res = lsClient.solve_qubo_lpu(matrixData = qubo_problem_data)

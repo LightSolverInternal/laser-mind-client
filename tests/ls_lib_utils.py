@@ -1,13 +1,13 @@
 import numpy as np
 
-from ls_lib import *
+from lightsolver_lib import *
 
 # Utility functions used in ls_lib_physical.py & ls_lib_virtual.py
 
 def embedCoupmat(coupling_matrix, indices=None, total_laser_num=15):
         '''
         Embed a coupling matrix into a larger matrix of size total_laser_num x total_laser_num.
-    
+
         Parameters:
         - coupling_matrix: (N x N) complex matrix to embed
         - indices: list of indices at which to embed the matrix. If None, embed from index 0.
@@ -18,7 +18,7 @@ def embedCoupmat(coupling_matrix, indices=None, total_laser_num=15):
         '''
         N = coupling_matrix.shape[0]
 
-        embedded = 0.001 * np.eye(total_laser_num).astype(np.complex64)   # small coupling for the rest of the lasers 
+        embedded = 0.001 * np.eye(total_laser_num).astype(np.complex64)   # small coupling for the rest of the lasers
                                                                           # (value will remain for those not included in the problem)
 
         if indices is None:
@@ -48,7 +48,7 @@ def analyze_sol_XY(problem_matrix, phases_diffs):
     correction = np.append(correction, -1*correction)   # error may go both ways
 
     for i in range(phases.shape[0]) :
-        
+
         min_bin_state, eng_new = best_energy_search_xy(np.exp(1J * phases[i, :]), np.real(problem_matrix))
 
         energies = [np.Inf]
@@ -89,8 +89,8 @@ def generateAnimation(outWave, save=False):
     # Create data for the initial frame
     theta = np.angle(outWave[0, :]) *  180 / np.pi
     radius = np.abs(outWave[0, :])
-    initial_frame_data = [go.Scatterpolar(r=radius, theta=theta, mode='markers+text', marker=dict(size=10, color=color_scale), text=text, textposition='top center', showlegend=False), 
-                          ] 
+    initial_frame_data = [go.Scatterpolar(r=radius, theta=theta, mode='markers+text', marker=dict(size=10, color=color_scale), text=text, textposition='top center', showlegend=False),
+                          ]
 
     # Create the layout
     layout = go.Layout(
@@ -100,7 +100,7 @@ def generateAnimation(outWave, save=False):
 
     # Create the figure with the initial frame
     fig.add_trace(initial_frame_data[0])                      # Add the initial trace
-    fig.update_layout(layout)            
+    fig.update_layout(layout)
     fig.update_xaxes(title_text="iteration")
     fig.update_layout(showlegend=True)
 
@@ -113,9 +113,9 @@ def generateAnimation(outWave, save=False):
         frame_data = [go.Scatterpolar(r=r_values, theta=theta, mode='markers+text', marker=dict(size=10, color=color_scale), name='polar plot', text=text, textposition='top center', showlegend=False),
                       ]
         animation_frames.append(go.Frame(data=frame_data, name=f"frame_{i}"))
-    
+
     # Add frames to the figure
-    fig.frames = animation_frames 
+    fig.frames = animation_frames
 
     # Define animation options
     animation_opts = dict(

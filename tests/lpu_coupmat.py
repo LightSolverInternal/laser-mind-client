@@ -6,9 +6,10 @@
 ####################################################################################################
 
 import numpy
+import os
 from laser_mind_client import LaserMind
 
-user_token = "<TOKEN>"
+pathToTokenFile = os.path.join(os.path.dirname(__file__), "lightsolver-token.txt")
 
 # Generate a coupling matrix
 size = 15
@@ -19,7 +20,7 @@ for i in range(size - 1):
     coupling_matrix[i+1,i] = coupling
 
 # Connect to the LightSolver Cloud
-lsClient = LaserMind(userToken=user_token)
+lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
 # Request a LPU solution to the CoupMat problem
 res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)

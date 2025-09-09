@@ -94,4 +94,5 @@ def test_solve_coupmat_sanity_sim_lpu_gain_info():
     assert 'record_gains' in res['data']['result']
 
 if __name__ == "__main__":
+    # todo split into separate files per test
     test_solve_coupmat_sanity_sim_lpu()

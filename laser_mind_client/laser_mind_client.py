@@ -266,7 +266,7 @@ class LaserMind:
                                   inputPath = None,
                                   num_runs = 1,
                                   average_over = 1,
-                                  exposure_time= 600,
+                                  exposure_time= None,
                                   num_neighbors = 1,
                                   effective_coupmat_translation_accuracy = 10.0,
                                   effective_coupmat_translation_time = 0.0
@@ -282,11 +282,13 @@ class LaserMind:
             MessageKeys.VAR_COUNT_KEY : varCount,
             MessageKeys.LPU_NUM_RUNS : num_runs,
             MessageKeys.LPU_AVERAGE_OVER : average_over,
-            MessageKeys.LPU_COUPMAT_EXPOSURE_MUS : exposure_time,
             MessageKeys.LPU_COUPMAT_NUM_NEIGHBORS : num_neighbors,
             MessageKeys.LPU_COUPMAT_ETA : effective_coupmat_translation_accuracy,
             MessageKeys.LPU_COUPMAT_ETT : effective_coupmat_translation_time
             }
+
+        if exposure_time:
+             requestInput[MessageKeys.LPU_COUPMAT_EXPOSURE_MUS] =  int(exposure_time)
 
         try:
             response = self.apiClient.SendCommandRequest("LPUSolver_Coupmat", requestInput)

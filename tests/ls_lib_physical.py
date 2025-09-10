@@ -52,7 +52,7 @@ for i in range(I.shape[0]):
 fig.colorbar(im, ax=ax.ravel().tolist(), orientation='vertical', shrink=0.8)
 plt.show(block=False)
 
-result_lpu = lsClient.solve_coupling_matrix_lpu(matrixData=matrixData, num_runs=nRuns, exposure_time=100)
+result_lpu = lsClient.solve_coupling_matrix_lpu(matrixData=emedded_coupling_matrix, num_runs=nRuns, exposure_time=100)
 
 # Analyze the solution from LPU
 energy, solution = analyze_sol_XY(I, phase_diffs_LPU)  # notice that matrix 'I' is sent to the function (the original Ising problem, NOT the coupling_matrix!)

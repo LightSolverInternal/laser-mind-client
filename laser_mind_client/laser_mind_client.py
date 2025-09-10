@@ -418,7 +418,7 @@ class LaserMind:
             }
 
         try:
-            response = self.apiClient.SendCommandRequest("SIMLPUSolver_Coupmat", requestInput, self.secured)
+            response = self.apiClient.SendCommandRequest("SIMLPUSolver_Coupmat", requestInput)
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:

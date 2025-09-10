@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - production
+      - main
 
 jobs:
   # We need to run this job first to have access to our private `github-actions` repository without a paid plan

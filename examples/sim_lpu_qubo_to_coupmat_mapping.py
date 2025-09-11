@@ -1,7 +1,7 @@
 import numpy as np
 from laser_mind_client import LaserMind
 from lightsolver_lib import *
-
+import os
 
 # Example: Constructing the coupling matrix for the QUBO problem
 
@@ -30,7 +30,7 @@ row_sums = np.abs(coupling_matrix).sum(axis=0)
 is_smaller_than_one = (row_sums < 1).all()
 print('sums are smaller than one:', is_smaller_than_one)
 
-
+pathToTokenFile = os.path.join(os.path.dirname(__file__), "lightsolver-token.txt")
 lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 result = lsClient.solve_coupling_matrix_sim_lpu(matrix_data=coupling_matrix.astype(np.complex64), num_runs=10, num_iterations=1000, rounds_per_record=1)
 

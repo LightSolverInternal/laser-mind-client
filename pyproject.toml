@@ -12,10 +12,11 @@ description = "A client python API for accessing LightSolver's capabilities"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-  'numpy==1.26.4',
+  'numpy==2.2.2',
   'laser-mind-client-meta>=0.8.1',
   'ls_api_clients>=0.28.1',
-  'ls-packers>=0.2.0'
+  'ls-packers>=0.2.0',
+  "lightsolver_lib"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

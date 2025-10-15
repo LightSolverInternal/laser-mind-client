@@ -112,8 +112,8 @@ jobs:
       - name: Update knowledge base website with new version
         shell: bash
         run: |
-          NEW_VERSION=${{ steps.tag-set-version.outputs.new_version }}
-          PRODUCT_VERSION_TOKEN=${{ secrets.WORDPRESS_PRODUCT_VERSION_TOKEN }}
+          NEW_VERSION="${{ steps.tag-set-version.outputs.new_version }}"
+          PRODUCT_VERSION_TOKEN="${{ secrets.WORDPRESS_PRODUCT_VERSION_TOKEN }}"
           
           timestamp=$(date "+%b %-d, %Y")
           payload='{"version": "$NEW_VERSION, $timestamp", "product":"client"}'

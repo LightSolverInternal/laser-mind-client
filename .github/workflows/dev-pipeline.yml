@@ -116,12 +116,12 @@ jobs:
           PRODUCT_VERSION_TOKEN="${{ secrets.WORDPRESS_PRODUCT_VERSION_TOKEN }}"
           
           timestamp=$(date "+%b %-d, %Y")
-          payload='{"version": "$NEW_VERSION, $timestamp", "product":"client"}'
+          payload="{\"version\": \"${NEW_VERSION}, ${timestamp}\", \"product\":\"client\"}"
           echo "new version is ${NEW_VERSION}"
           echo "payload is ${payload}"
           curl -sS --fail-with-body -X POST "https://kb.lightsolver.com/wp-json/product/v1/version" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -H "x-product-token: $PRODUCT_VERSION_TOKEN" \
+            -H "x-product-token: ${PRODUCT_VERSION_TOKEN}" \
             --data "$payload" \
             --max-time 60

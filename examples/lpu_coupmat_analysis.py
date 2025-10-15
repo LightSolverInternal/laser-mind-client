@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 from laser_mind_client import LaserMind
 from lightsolver_lib import *
@@ -11,16 +12,16 @@ I = np.array([[0., 1., 0., 0., 0.],
               [0., 0., 1., 0., 0.],
               [0., 0., 1., 0., 0.]])
 
-coupling_matrix = coupling_matrix_xy(I, XYmodelParams())         # parameters of self-coupling and coupling amplitude
+coupling_matrix = coupling_matrix_xy(I, XYModelParams())         # parameters of self-coupling and coupling amplitude
                                                                  # can be set via XYmodelParams()
 
 # Choosing how to embed a 5 laser problem onto a 15 lasers system
-emedded_coupling_matrix = embedCoupmat(coupling_matrix)
+emedded_coupling_matrix = embed_coupmat(coupling_matrix)
 
 print('Shape of embedded coupling matrix: ', emedded_coupling_matrix.shape)
 
 # Initialize the client
-pathToTokenFile = os.path.join(os.path.dirname(__file__), "lightsolver-token.txt")'  # ADD PERSONAL TOKEN HERE
+pathToTokenFile = os.path.join(os.path.dirname(__file__), "lightsolver-token.txt") # ADD PERSONAL TOKEN HERE
 lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
 # Solve on the LPU:

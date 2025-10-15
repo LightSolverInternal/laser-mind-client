@@ -75,16 +75,8 @@ jobs:
       - name: Fail if CHANGES.md not updated
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            base="${{ github.event.pull_request.base.sha }}"
-            head="${{ github.sha }}"
-          else
-            base="${{ github.event.before }}"
-            head="${{ github.sha }}"
-          fi
-
-          echo "Comparing $base..$head"
-          if git diff --name-only "$base" "$head" | grep -qE '^CHANGES\.md$'; then
+          echo "Comparing HEAD^1..HEAD"
+          if git diff --name-only HEAD^1 HEAD | grep -qE '^CHANGES\.md$'; then
             echo "CHANGES.md updated"
           else
             echo "::error title=Missing changelog::Please update CHANGES.md for this change."
@@ -170,8 +162,8 @@ jobs:
       - name: Update knowledge base website with new version
         shell: bash
         run: |
-          NEW_VERSION=${{ steps.tag-set-version.outputs.new_version }}
-          PRODUCT_VERSION_TOKEN=${{ secrets.WORDPRESS_PRODUCT_VERSION_TOKEN }}
+          NEW_VERSION="${{ steps.tag-set-version.outputs.new_version }}"
+          PRODUCT_VERSION_TOKEN="${{ secrets.WORDPRESS_PRODUCT_VERSION_TOKEN }}"
           
           timestamp=$(date "+%b %-d, %Y")
           payload='{"version": "$NEW_VERSION, $timestamp", "product":"client"}'

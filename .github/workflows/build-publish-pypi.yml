@@ -2,8 +2,7 @@ name: Build and Publish Python packages [PyPi]
 run-name: Build laser-mind-client Python package by @${{ github.actor }}
 
 on:
-  push:
-    pull_request:
+  pull_request:
     types: [closed]
 
 jobs:

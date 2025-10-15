@@ -2,19 +2,76 @@ name: Build and Publish Python packages [PyPi]
 run-name: Build laser-mind-client Python package by @${{ github.actor }}
 
 on:
-  # This line enables you to run the CI manually. Manual runs are represented as `workflow_dispatch` event internally
-  workflow_dispatch:
   push:
-    branches:
-      - main
+    pull_request:
+    types: [closed]
 
 jobs:
+  validate-pr:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: [ lightsolver-github-runner ]
+    steps:
+      - name: Collect PR approvers
+        id: collect_approvers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_AUTHOR=${{ github.event.pull_request.user.login }}
+
+          # Fetch all reviews. We only care about each reviewer's latest state.
+          REVIEWS=$(curl -sS -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews?per_page=100")
+
+          # Build list of unique approvers whose latest state is APPROVED and not the PR author.
+          # 1) sort by reviewer and submitted_at
+          # 2) group by reviewer
+          # 3) take the last review for each reviewer
+          # 4) keep only APPROVED states
+          # 5) extract login, exclude author
+          APPROVERS_JSON=$(echo "$REVIEWS" | jq -r '
+            sort_by([.user.login, .submitted_at])                              
+            | group_by(.user.login)                                            
+            | map(.[-1])                                                       
+            | map(select(.state == "APPROVED"))                                
+            | map(.user.login)                                                 
+            | map(select(. != "'"$PR_AUTHOR"'"))                               
+          ')
+
+          # Ensure we have at least one non-author approver.
+          if [[ $(echo "$APPROVERS_JSON" | jq 'length') -eq 0 ]]; then
+            echo "PR not approved or not approved by anyone other than the author."
+            exit 1
+          fi
+
+          echo "PR Author: $PR_AUTHOR PR Approvers:" $(echo "$APPROVERS_JSON" | jq -r 'join(", ")')
+      - name: Fail if CHANGES.md not updated
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.sha }}"
+          else
+            base="${{ github.event.before }}"
+            head="${{ github.sha }}"
+          fi
+
+          echo "Comparing $base..$head"
+          if git diff --name-only "$base" "$head" | grep -qE '^CHANGES\.md$'; then
+            echo "CHANGES.md updated"
+          else
+            echo "::error title=Missing changelog::Please update CHANGES.md for this change."
+            exit 1
+          fi
   # We need to run this job first to have access to our private `github-actions` repository without a paid plan
   checkout:
     # Our runners have this tag. The runner must match all the tags to run the CI, so adding more tags to
     # specify concrete configurations is good. For example, we probably want something like this:
     # runs-on: [ lightsolver-github-runner linux cpu no-gpu ]
     runs-on: [ lightsolver-github-runner ]
+    needs: validate-pr
     steps:
       - uses: hmarr/debug-action@v2
 
@@ -103,3 +160,19 @@ jobs:
         with:
           password: ${{ steps.pypi-api-token.outputs.API_TOKEN }}
           repository-url: https://upload.pypi.org/legacy/
+
+      - name: Update knowledge base website with new version
+        shell: bash
+        run: |
+          NEW_VERSION=${{ steps.tag-set-version.outputs.new_version }}
+          PRODUCT_VERSION_TOKEN=${{ secrets.WORDPRESS_PRODUCT_VERSION_TOKEN }}
+          
+          timestamp=$(date "+%b %-d, %Y")
+          payload='{"version": "$NEW_VERSION, $timestamp", "product":"client"}'
+          echo "new version is ${NEW_VERSION}"
+          curl -sS --fail -X POST "https://kb.lightsolver.com/wp-json/product/v1/version" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "x-product-token: $PRODUCT_VERSION_TOKEN" \
+            --data "$payload" \
+            --max-time 60

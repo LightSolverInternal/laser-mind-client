@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
- - PDE problems support
+ - PDE problems support.
 
 ## [0.51.0] - 2025-10-12
 

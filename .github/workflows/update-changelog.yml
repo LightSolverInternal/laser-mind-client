@@ -7,7 +7,6 @@ on:
 jobs:
   checkout:
     runs-on: [ lightsolver-github-runner ]
-    needs: validate-pr
     steps:
       - uses: hmarr/debug-action@v2
 

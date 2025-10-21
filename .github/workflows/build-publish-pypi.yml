@@ -109,11 +109,11 @@ jobs:
           github_token: ${{ secrets.TOKEN}}
           default_bump: "minor"
 
-      - name: Install pypa/build
+      - name: Install pypa/build requests and markdown-it-py
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          pip install build
+          pip install build markdown-it-py requests
       - name: Build a binary wheel and a source tarball
         run: |
           source venv/bin/activate

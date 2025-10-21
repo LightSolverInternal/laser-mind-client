@@ -109,11 +109,11 @@ jobs:
           github_token: ${{ secrets.TOKEN}}
           default_bump: "minor"
 
-      - name: Install pypa/build
+      - name: Install pypa/build requests and markdown-it-py
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          pip install build
+          pip install build markdown-it-py requests
       - name: Build a binary wheel and a source tarball
         run: |
           source venv/bin/activate
@@ -175,3 +175,10 @@ jobs:
             -H "x-product-token: ${PRODUCT_VERSION_TOKEN}" \
             --data "$payload" \
             --max-time 60
+
+      - name: Update release notes in knowledge base website
+        uses: ./reusable-actions/render-changelog-and-send-to-wp
+        with:
+          title: "Client Release Notes"
+          page_slug: "client-release-notes"
+          debug: "true"

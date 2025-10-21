@@ -175,3 +175,10 @@ jobs:
             -H "x-product-token: ${PRODUCT_VERSION_TOKEN}" \
             --data "$payload" \
             --max-time 60
+
+      - name: Update release notes in knowledge base website
+        uses: ./reusable-actions/render-changelog-and-send-to-wp
+        with:
+          title: "Client Release Notes"
+          page_slug: "client-release-notes"
+          debug: "true"

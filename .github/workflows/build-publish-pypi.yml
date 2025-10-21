@@ -183,4 +183,4 @@ jobs:
           page_slug: "client-release-notes"
           debug: "true"
           password: ${{ secrets.WORDPRESS_ADMIN_TOKEN_PASSWORD }}
-          username: "shaulc" # TODO change the user
+          username: "systemadmin"

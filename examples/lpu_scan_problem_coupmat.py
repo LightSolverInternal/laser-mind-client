@@ -19,7 +19,6 @@ for i in range(size - 1):
     coupling_matrix[i,i+1] = coupling
     coupling_matrix[i+1,i] = coupling
 
-
 # number of steps in the scan
 num_steps = 10
 # lasers to scan

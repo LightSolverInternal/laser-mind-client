@@ -1,8 +1,8 @@
 ####################################################################################################
-# This example creates a Coupling matrix problem and solves it using the LPU over LightSolver's Platform.
-# The `solve_coupling_matrix_lpu` function is used with the following parameters:
+# This example creates a Coupling matrix problem and scans its phase parameters on the LPU over LightSolver's Platform.
+# The `solve_scan_lpu` function is used with the following parameters:
 # - ```matrixData```: A 2D array representing the coupmat problem.
-# - ```num_runs ```: The required number or calculation runs, default 1.
+# - ```scanDictionary```: A dictionary containing the scan parameters.
 ####################################################################################################
 
 import numpy
@@ -22,11 +22,10 @@ for i in range(size - 1):
 # number of steps in the scan
 num_steps = 10
 # lasers to scan
-lasers_to_scan = numpy.array([(3,3)])
+lasers_to_scan = numpy.array([[3,3]])
 # phases to scan for each pair of indicies for the num_steps
 phases_to_scan = numpy.zeros((lasers_to_scan.shape[0],num_steps),numpy.float32)
 phases_to_scan[:] = numpy.round(numpy.linspace(0, 255, num_steps, endpoint=False)).astype(numpy.uint8) * (2 * numpy.pi / 255)
-phases_to_scan[0,:]
 scan_dictionary = {
     "num_of_steps": num_steps,
     "lasers_to_scan": lasers_to_scan,
@@ -36,8 +35,8 @@ scan_dictionary = {
 # Connect to the LightSolver Cloud
 lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
-# Request a LPU solution to the CoupMat problem
-res = lsClient.solve_scan_lpu(matrixData = coupling_matrix,  scanDictionary = scan_dictionary)
+# Scan the phase parameters on the LPU
+res = lsClient.solve_scan_lpu(matrixData = coupling_matrix, scanDictionary = scan_dictionary)
 
 # Verify response format
 assert 'command' in res, "Missing 'command' field"

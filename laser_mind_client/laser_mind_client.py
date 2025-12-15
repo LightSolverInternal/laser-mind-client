@@ -21,8 +21,8 @@ def numpy_to_npz_b64(**matrices) -> str:
         numpy.savez(buf, **matrices)
         buf.seek(0)
         out_matrix_npz_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-    except Exception:
-        pass
+    except Exception as e :
+        raise e
     return out_matrix_npz_b64
 
 
@@ -583,24 +583,25 @@ class LaserMind:
             raise  e
 
 
-    def upload_lpu_scan_coupmat_input(self, matrix_data = None, scan_dictionary = None, input_path = None):
+    def upload_solve_scan_lpu_input(self, matrix_data = None, scan_dictionary = None, input_path = None):
         data_input = {}
-        if matrix_data is not None:
-            var_count = len(matrix_data)
-            if type(matrix_data) == numpy.ndarray:
-                if matrix_data.dtype == numpy.complex64:
-                    data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
-                else:
-                        raise(TypeError("The input must complex64 type"))
-            else:
-                raise(TypeError("The input must be a numpy array"))
+
+        if matrix_data is  None:
+            raise(TypeError("The input matrix must be not empty"))
+
+        if type(matrix_data) != numpy.ndarray:
+            raise(TypeError("The input must be a numpy array"))
+
+        if matrix_data.dtype != numpy.complex64:
+            raise(TypeError("The input must complex64 type"))
+
+        data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
 
         if scan_dictionary is not None:
             data_input[MessageKeys.SCAN_DICTIONARY] = scan_dictionary
-
-        command_input = numpy_to_npz_b64(**data_input)
-
         try:
+            command_input = numpy_to_npz_b64(**data_input)
+            var_count = len(matrix_data)
             iid = self.apiClient.upload_command_input(command_input, input_path)
             return iid, int(var_count)
 
@@ -623,7 +624,7 @@ class LaserMind:
                         effective_coupmat_translation_time = 0.0
                         ):
         if inputPath == None:
-            iid, varCount = self.upload_lpu_scan_coupmat_input( matrix_data = matrixData, scan_dictionary = scanDictionary )
+            iid, varCount = self.upload_solve_scan_lpu_input( matrix_data = matrixData, scan_dictionary = scanDictionary )
         else:
             iid = inputPath
             varCount = 100

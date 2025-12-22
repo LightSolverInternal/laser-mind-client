@@ -23,6 +23,10 @@ jobs:
     runs-on: [ lightsolver-github-runner ]
     needs: checkout
     steps:        
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
       - name: Update release notes in knowledge base website
         uses: ./reusable-actions/render-changelog-and-send-to-wp
         with:
@@ -30,4 +34,4 @@ jobs:
           page_slug: "client-release-notes"
           debug: "true"
           password: ${{ secrets.WORDPRESS_ADMIN_TOKEN_PASSWORD }}
-          username: "shaulc" # TODO change the user
+          username: "systemadmin" 

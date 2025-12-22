@@ -9,6 +9,38 @@ from ls_packers import float_array_as_int
 from ls_packers import numpy_array_to_triu_flat
 from laser_mind_client_meta import MessageKeys
 
+
+import base64
+import io
+
+def numpy_to_npz_b64(**matrices) -> str:
+    # usage: numpy_to_npz_b64(phase=phase, amplitude=ampl)
+    out_matrix_npz_b64 = ""
+    try:
+        buf = io.BytesIO()
+        numpy.savez(buf, **matrices)
+        buf.seek(0)
+        out_matrix_npz_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    except Exception as e :
+        raise e
+    return out_matrix_npz_b64
+
+
+def npz_b64_to_numpy(npz_b64: str) -> dict[str, numpy.ndarray]:
+    """
+    Decode base64-encoded .npz created by numpy_to_npz_b64()
+    and return a dict: {name: numpy_array}.
+    """
+    if not npz_b64:
+        return {}
+    # Decode base64 to bytes
+    raw = base64.b64decode(npz_b64)
+    # Wrap bytes in a BytesIO and load with np.load
+    buf = io.BytesIO(raw)
+    with numpy.load(buf, allow_pickle=True) as data:
+        # data is an NpzFile; convert to normal dict
+        return {key: data[key] for key in data.files}
+
 def serialize_complex_array(arr: numpy.ndarray):
     """
     Serialize a complex numpy array into a dict with real and imag parts.
@@ -547,5 +579,106 @@ class LaserMind:
 
         except requests.exceptions.ConnectionError as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
+        except Exception as e:
+            raise  e
+
+
+    def upload_solve_scan_lpu_input(self, matrix_data = None, scan_dictionary = None, input_path = None):
+        data_input = {}
+
+        if matrix_data is  None:
+            raise(TypeError("The input matrix must be not empty"))
+
+        if type(matrix_data) != numpy.ndarray:
+            raise(TypeError("The input must be a numpy array"))
+
+        if matrix_data.dtype != numpy.complex64:
+            raise(TypeError("The input must complex64 type"))
+
+        data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
+
+        if scan_dictionary is not None:
+            data_input[MessageKeys.SCAN_DICTIONARY] = scan_dictionary
+        try:
+            command_input = numpy_to_npz_b64(**data_input)
+            var_count = len(matrix_data)
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, int(var_count)
+
+        except requests.exceptions.ConnectionError as e:
+            raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
+        except Exception as e:
+            raise  e
+
+
+    def solve_scan_lpu( self,
+                        matrixData = None,
+                        scanDictionary = None,
+                        waitForSolution = True,
+                        inputPath = None,
+                        num_runs = 1,
+                        average_over = 1,
+                        exposure_time= None,
+                        num_neighbors = 1,
+                        effective_coupmat_translation_accuracy = 10.0,
+                        effective_coupmat_translation_time = 0.0
+                        ):
+        if inputPath == None:
+            iid, varCount = self.upload_solve_scan_lpu_input( matrix_data = matrixData, scan_dictionary = scanDictionary )
+        else:
+            iid = inputPath
+            varCount = 100
+
+        requestInput = {
+            MessageKeys.QUBO_INPUT_PATH : iid,
+            MessageKeys.VAR_COUNT_KEY : varCount,
+            MessageKeys.LPU_NUM_RUNS : num_runs,
+            MessageKeys.LPU_AVERAGE_OVER : average_over,
+            MessageKeys.LPU_COUPMAT_NUM_NEIGHBORS : num_neighbors,
+            MessageKeys.LPU_COUPMAT_ETA : effective_coupmat_translation_accuracy,
+            MessageKeys.LPU_COUPMAT_ETT : effective_coupmat_translation_time
+            }
+
+        if exposure_time:
+             requestInput[MessageKeys.LPU_COUPMAT_EXPOSURE_MUS] =  int(exposure_time)
+
+
+        try:
+            response = self.apiClient.SendCommandRequest("LPUSolver_ScanProblem", requestInput)
+        except requests.exceptions.ConnectionError as e:
+            raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+        except Exception as e:
+            raise  e
+
+        logging.info(f"got response {response}")
+        if not waitForSolution:
+            return response
+
+        try:
+            result = self.get_solution_sync(response)
+            solutions_result = npz_b64_to_numpy (result['data']['solutions'])
+
+            result['data']['solutions'] = []
+            num_of_steps = scanDictionary['num_of_steps']
+            for idx in range (num_runs):
+                run_solutions = []
+                for step in range (num_of_steps):
+                    solution_step = {'phase_problem':solutions_result['phase_problem'][idx][step],
+                                'phase_reference':solutions_result['phase_reference'][idx][step],
+                                'energy_problem':solutions_result['energy_problem'][idx][step],
+                                'energy_reference':solutions_result['energy_reference'][idx][step],
+                                'contrast_problem':solutions_result['contrast_problem'][idx][step],
+                                'contrast_reference':solutions_result['contrast_reference'][idx][step],
+                                'image_problem_list':solutions_result['image_problem_list'][idx][step],
+                                'image_reference_list':solutions_result['image_reference_list'][idx][step],
+                                'snr_problem':solutions_result['snr_problem'][idx][step],
+                                'snr_reference':solutions_result['snr_reference'][idx][step]
+                                }
+                    run_solutions.append(solution_step)
+                result['data']['solutions'].append(run_solutions)
+
+            return result
+        except requests.exceptions.ConnectionError   as e:
+            raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
         except Exception as e:
             raise  e

@@ -41,44 +41,6 @@ def npz_b64_to_numpy(npz_b64: str) -> dict[str, numpy.ndarray]:
         # data is an NpzFile; convert to normal dict
         return {key: data[key] for key in data.files}
 
-def serialize_complex_array(arr: numpy.ndarray):
-    """
-    Serialize a complex numpy array into a dict with real and imag parts.
-    """
-    if not numpy.iscomplexobj(arr):
-        raise ValueError("Array must be complex type.")
-
-    return {
-        "real": arr.real.tolist(),
-        "imag": arr.imag.tolist()
-}
-
-
-def deserialize_complex_array(data: dict) -> numpy.ndarray:
-    """
-    Takes a dictionary with 'real' and 'imag' keys and returns a numpy.complex64 array.
-    """
-    real = numpy.array(data['real'], dtype=numpy.float32)
-    imag = numpy.array(data['imag'], dtype=numpy.float32)
-    return real + 1j * imag
-
-def deserialize_complex_matrix(raw_data: dict) -> numpy.ndarray:
-    """
-    Takes a dictionary with 'real' and 'imag' keys and returns a numpy.complex64 matrix.
-    """
-
-    reconstructed = numpy.array(raw_data['real']) + 1j * numpy.array(raw_data['imag'])
-    try:
-        raw_matrix = reconstructed.reshape(raw_data['size'],raw_data['size'])
-    except Exception as e:
-        logging.error(f"Complex matrix  reconstruction failed for size {raw_data['size']} : {str(e)}")
-        raise e
-    return raw_matrix
-
-logging.basicConfig(
-    filename="laser-mind.log",
-    level=logging.INFO,
-    format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
 def symmetrize(matrix):
         """
@@ -334,15 +296,45 @@ class LaserMind:
             return response
 
         try:
+
             result = self.get_solution_sync(response)
-            if "effective_coupmat" in result['data']:
-                result['data']['effective_coupmat'] = deserialize_complex_matrix(result['data']['effective_coupmat'])
+            solutions_result = npz_b64_to_numpy (result['data']['solutions'])
+
+            result['data']['solutions'] = []
+
+            for idx in range (num_runs):
+                solution = {'phase_problem':solutions_result['phase_problem'][idx],
+                            'phase_reference':solutions_result['phase_reference'][idx],
+                            'energy_problem':solutions_result['energy_problem'][idx],
+                            'energy_reference':solutions_result['energy_reference'][idx],
+                            'contrast_problem':solutions_result['contrast_problem'][idx],
+                            'contrast_reference':solutions_result['contrast_reference'][idx],
+                            'image_problem_list':solutions_result['image_problem_list'][idx],
+                            'image_reference_list':solutions_result['image_reference_list'][idx],
+                            'snr_problem':solutions_result['snr_problem'][idx],
+                            'snr_reference':solutions_result['snr_reference'][idx],
+                            'solverRunningTime': result['data']["solver_running_time"]
+                            }
+                result['data']['solutions'].append(solution)
+
+            if 'effective_coupmat' in solutions_result:
+                result['effective_coupmat'] = solutions_result['effective_coupmat']
+
+            if "warnings" in solutions_result:
+                result["warnings"] = solutions_result["warnings"]
+
+            if "validation_warnings" in solutions_result:
+                result["validation_warnings"] = solutions_result["validation_warnings"]
+
+            if "exposure_time" in solutions_result:
+                result["exposure_time"] = solutions_result["exposure_time"]
+
             return result
+
         except requests.exceptions.ConnectionError   as e:
             raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
         except Exception as e:
             raise  e
-
 
     def upload_lpu_qubo_input(self, matrix_data = None, edge_list = None, input_path = None):
         command_input = {}
@@ -384,26 +376,25 @@ class LaserMind:
 
 
     def upload_lpu_coupmat_input(self, matrix_data = None, edge_list = None, input_path = None):
-        command_input = {}
-        if matrix_data is not None:
-            var_count = len(matrix_data)
-            if type(matrix_data) == numpy.ndarray:
-                if matrix_data.dtype == numpy.complex64:
-                    a = matrix_data.flatten()
-                    # Combine real and imaginary parts for serialization
-                    real_part = a.real.tolist()
-                    imag_part = a.imag.tolist()
-                    combined = {'real': real_part, 'imag': imag_part,'size':var_count}
-                    command_input[MessageKeys.COUPMAT_MATRIX] = combined
+        data_input = {}
 
-                else:
-                        raise(TypeError("The input must complex64 type"))
-            else:
-                raise(TypeError("The input must be a numpy array"))
+        if matrix_data is  None:
+            raise(TypeError("The input matrix must be not empty"))
         elif edge_list is not None:
             raise (TypeError("Edge List not supported as coup_matrix input"))
 
+        if type(matrix_data) != numpy.ndarray:
+            raise(TypeError("The input must be a numpy array"))
+
+        if matrix_data.dtype != numpy.complex64:
+            raise(TypeError("The input must complex64 type"))
+
+        data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
+        var_count = len(matrix_data)
+
         try:
+            command_input={}
+            command_input['npz_payload'] = numpy_to_npz_b64(**data_input)
             iid = self.apiClient.upload_command_input(command_input, input_path)
             return iid, int(var_count)
 
@@ -464,15 +455,17 @@ class LaserMind:
 
         try:
             result = self.get_solution_sync(response)
+            solutions_result = npz_b64_to_numpy (result['data']['result'])
+
             # Reconstruct arrays
-
-            result['data']['result']['start_states'] = deserialize_complex_array(result['data']['result']['start_states'])
-            result['data']['result']['final_states'] = deserialize_complex_array(result['data']['result']['final_states'])
-            result['data']['result']['record_states'] = deserialize_complex_array(result['data']['result']['record_states'])
-
-            # The other arrays that are purely real (final_gains, record_gains) can be read normally
-            result['data']['result']['final_gains'] = numpy.array(result['data']['result']['final_gains'], dtype=numpy.float32)
-            result['data']['result']['record_gains'] = numpy.array(result['data']['result']['record_gains'], dtype=numpy.float32)
+            result['data']['result'] = {}
+            result['data']['result']['start_states'] = solutions_result['start_states'].tolist()
+            result['data']['result']['final_states'] = solutions_result['final_states'].tolist()
+            result['data']['result']['final_gains']  = solutions_result['final_gains'].tolist()
+            result['data']['result']['record_states']= solutions_result['record_states']
+            result['data']['result']['record_gains'] = solutions_result['record_gains']
+            result['data']['result']['num_runs']     = num_runs
+            result['data']['result']['solver_time'] = solutions_result['solver_time']
 
             return result
         except requests.exceptions.ConnectionError   as e:
@@ -495,28 +488,25 @@ class LaserMind:
                                       gain_info_pump_treshold = 1.8 ,
                                       gain_info_amplification_saturation = 1.0 ,
                                       input_path = None):
-        command_input = {}
+        data_input = {}
 
-        if matrix_data is not None:
-            var_count = len(matrix_data)
-            if type(matrix_data) == numpy.ndarray:
-                if matrix_data.dtype == numpy.complex64:
-                    combined =  serialize_complex_array (matrix_data)
-                    command_input[MessageKeys.COUPMAT_MATRIX] = combined
-
-                else:
-                        raise(TypeError("The input must complex64 type"))
-            else:
-                raise(TypeError("The input must be a numpy array"))
-        else:
+        if matrix_data is  None:
             raise(TypeError("The input matrix must be not empty"))
+
+        if type(matrix_data) != numpy.ndarray:
+            raise(TypeError("The input must be a numpy array"))
+
+        if matrix_data.dtype != numpy.complex64:
+            raise(TypeError("The input must complex64 type"))
+
+        data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
+        var_count = len(matrix_data)
 
         if initial_states_vector is not None:
             if initial_states_vector is not None and num_runs != 1 :
                 raise ValueError("initial_states_vector already consist number or runs:{initial_states_vector.shape}")
             if not isinstance(initial_states_vector, numpy.ndarray):
                 raise ValueError("initial_states_vector must be a numpy array")
-
             for i, arr in enumerate(initial_states_vector):
                 if not isinstance(arr, numpy.ndarray):
                     raise ValueError(f"Element {i} of initial_states_vector  is not a numpy array")
@@ -524,56 +514,54 @@ class LaserMind:
                     raise ValueError(f"Element {i} of initial_states_vector is not of dtype numpy.complex64")
                 if arr.shape[0] != var_count:
                     raise ValueError(f"Element {i} of initial_states_vector does not have size of {var_count}")
-            z = initial_states_vector.shape[0]
-            zz = initial_states_vector.shape[1]
-            b = initial_states_vector.shape
-
-            command_input["initial_states"] = serialize_complex_array (initial_states_vector)
+            data_input["initial_states"] = initial_states_vector
 
         if initial_states_vector is not None and initial_states_seed >= 0 :
             raise(TypeError("The input must provide only one of seed or vector"))
-        command_input["initial_states_seed"] = initial_states_seed
+        data_input["initial_states_seed"] = initial_states_seed
 
         if initial_states_vector is not None and num_runs > 1:
             raise(TypeError("For SIM LPU: same initial state vector, run multiple times, will return exactly the same result every time."))
 
         if num_runs < 1 or num_runs > 10000:
             raise(TypeError("The num_runs:{num_runs} in input must be in range 1-10K"))
-        command_input[MessageKeys.LPU_NUM_RUNS] = num_runs
+        data_input[MessageKeys.LPU_NUM_RUNS] = num_runs
 
         if num_iterations < 1 or num_iterations > 200000:
             raise(TypeError("The num_iterations:{num_iterations} in  input must be in range 1-200K"))
-        command_input["num_iterations"] = num_iterations
+        data_input["num_iterations"] = num_iterations
 
         if timeout < 1 or timeout > 200000:
             raise(TypeError("The timeout:{timeout} in  input must be in range 1-14400 seconds"))
-        command_input["timeout"] = timeout
+        data_input["timeout"] = timeout
 
         if rounds_per_record < 1 or rounds_per_record > num_iterations:
             raise(TypeError("The rounds_per_record :{rounds_per_record} in  input must be in range from 1 to num_iterations:{num_iterations}:"))
-        command_input["rounds_per_record"] = rounds_per_record
+        data_input["rounds_per_record"] = rounds_per_record
 
         if gain_info_initial_gain < 0 :
             raise(TypeError("The gain_info_initial_gain:{gain_info_initial_gain} in  input must be in range 0-inf "))
-        command_input["gain_info_initial_gain"] = gain_info_initial_gain
+        data_input["gain_info_initial_gain"] = gain_info_initial_gain
 
         if gain_info_pump_max < 0:
             raise(TypeError("The gain_info_pump_max:{gain_info_pump_max} in  input must be in range 0-inf"))
-        command_input["gain_info_pump_max"] = gain_info_pump_max
+        data_input["gain_info_pump_max"] = gain_info_pump_max
 
         if gain_info_pump_tau < 0:
             raise(TypeError("The gain_info_pump_tau:{gain_info_pump_tau} in  input must be in range 0-inf"))
-        command_input["gain_info_pump_tau"] = gain_info_pump_tau
+        data_input["gain_info_pump_tau"] = gain_info_pump_tau
 
         if gain_info_pump_treshold < 0:
             raise(TypeError("The gain_info_pump_treshold:{gain_info_pump_treshold} in  input must be in range 0-inf"))
-        command_input["gain_info_pump_treshold"] = gain_info_pump_treshold
+        data_input["gain_info_pump_treshold"] = gain_info_pump_treshold
 
         if gain_info_amplification_saturation <= 0:
             raise(TypeError("The gain_info_amplification_saturation:{gain_info_amplification_saturation} in  input must be in range 0-inf"))
-        command_input["gain_info_amplification_saturation"] = gain_info_amplification_saturation
+        data_input["gain_info_amplification_saturation"] = gain_info_amplification_saturation
 
         try:
+            command_input={}
+            command_input['npz_payload'] = numpy_to_npz_b64(**data_input)
             iid = self.apiClient.upload_command_input(command_input, input_path)
             return iid, int(var_count)
 
@@ -600,7 +588,8 @@ class LaserMind:
         if scan_dictionary is not None:
             data_input[MessageKeys.SCAN_DICTIONARY] = scan_dictionary
         try:
-            command_input = numpy_to_npz_b64(**data_input)
+            command_input={}
+            command_input['npz_payload'] = numpy_to_npz_b64(**data_input)
             var_count = len(matrix_data)
             iid = self.apiClient.upload_command_input(command_input, input_path)
             return iid, int(var_count)
@@ -676,6 +665,18 @@ class LaserMind:
                                 }
                     run_solutions.append(solution_step)
                 result['data']['solutions'].append(run_solutions)
+
+            if 'effective_coupmat' in solutions_result:
+                result['effective_coupmat'] = solutions_result['effective_coupmat']
+
+            if "warnings" in solutions_result:
+                result["warnings"] = solutions_result["warnings"]
+
+            if "validation_warnings" in result['data']:
+                result["validation_warnings"] = result['data']["validation_warnings"]
+
+            if "exposure_time" in result['data']:
+                result["exposure_time"] = result['data']["exposure_time"]
 
             return result
         except requests.exceptions.ConnectionError   as e:

@@ -26,21 +26,25 @@ def numpy_to_npz_b64(**matrices) -> str:
     return out_matrix_npz_b64
 
 
-def npz_b64_to_numpy(npz_b64: str) -> dict[str, numpy.ndarray]:
+def npz_b64_to_python(npz_b64: str) :
     """
     Decode base64-encoded .npz created by numpy_to_npz_b64()
-    and return a dict: {name: numpy_array}.
+    and return a dict
     """
     if not npz_b64:
         return {}
-    # Decode base64 to bytes
     raw = base64.b64decode(npz_b64)
-    # Wrap bytes in a BytesIO and load with np.load
     buf = io.BytesIO(raw)
+    out = {}
     with numpy.load(buf, allow_pickle=True) as data:
-        # data is an NpzFile; convert to normal dict
-        return {key: data[key] for key in data.files}
-
+        for key in data.files:
+            v = data[key]
+            # Restore Python scalar if it was saved as 0-D ndarray
+            if isinstance(v, numpy.ndarray) and v.ndim == 0:
+                out[key] = v.item()
+            else:
+                out[key] = v
+    return out
 
 def symmetrize(matrix):
         """
@@ -298,7 +302,7 @@ class LaserMind:
         try:
 
             result = self.get_solution_sync(response)
-            solutions_result = npz_b64_to_numpy (result['data']['solutions'])
+            solutions_result = npz_b64_to_python (result['data']['solutions'])
 
             result['data']['solutions'] = []
 
@@ -455,7 +459,7 @@ class LaserMind:
 
         try:
             result = self.get_solution_sync(response)
-            solutions_result = npz_b64_to_numpy (result['data']['result'])
+            solutions_result = npz_b64_to_python (result['data']['result'])
 
             # Reconstruct arrays
             result['data']['result'] = {}
@@ -645,7 +649,7 @@ class LaserMind:
 
         try:
             result = self.get_solution_sync(response)
-            solutions_result = npz_b64_to_numpy (result['data']['solutions'])
+            solutions_result = npz_b64_to_python (result['data']['solutions'])
 
             result['data']['solutions'] = []
             num_of_steps = scanDictionary['num_of_steps']

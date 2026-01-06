@@ -16,7 +16,8 @@ dependencies = [
   'laser-mind-client-meta>=0.12.0',
   'ls_api_clients>=0.28.1',
   'ls-packers>=0.2.0',
-  "lightsolver_lib"
+  "lightsolver_lib",
+  "matplotlib"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

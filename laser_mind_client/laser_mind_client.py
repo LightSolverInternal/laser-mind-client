@@ -330,9 +330,6 @@ class LaserMind:
             if "validation_warnings" in solutions_result:
                 result["validation_warnings"] = solutions_result["validation_warnings"]
 
-            if "exposure_time" in solutions_result:
-                result["exposure_time"] = solutions_result["exposure_time"]
-
             return result
 
         except requests.exceptions.ConnectionError   as e:

@@ -31,7 +31,7 @@ result_lpu = lsClient.solve_coupling_matrix_lpu(matrixData = emedded_coupling_ma
 # Getting the data for n-th run:
 n = 0      # looking at run 0, for all lasers
 solution = result_lpu['data']['solutions'][n]
-images = np.asarray(solution['problem_image'])
+images = np.asarray(solution['image_problem_list'])
 phase_problem = np.asarray(solution['phase_problem'])
 phase_reference = np.asarray(solution['phase_reference'])
 snr_problem = solution['snr_problem']

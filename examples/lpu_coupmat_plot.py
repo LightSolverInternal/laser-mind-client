@@ -31,11 +31,11 @@ res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)
 assert 'command' in res, "Missing 'command' field"
 assert 'data' in res, "Missing 'data' field"
 assert 'solutions' in res['data'], "Missing 'solutions' field"
-assert 'problem_image' in res['data']['solutions'][0]
+assert 'image_problem_list' in res['data']['solutions'][0]
 assert 'exposure_time' in res['data']
 
 
-problem_image = res['data']['solutions'][0]['problem_image']
+problem_image = res['data']['solutions'][0]['image_problem_list']
 problem_image_arr = numpy.asarray(problem_image)          # make it a NumPy array
 print("shape:", problem_image_arr.shape)
 

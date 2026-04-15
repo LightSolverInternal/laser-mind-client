@@ -109,7 +109,14 @@ class LaserMind:
         self.internal_logger.exception("ValueError: %s",msg)
         if self.client_logger:
             self.client_logger.error("ValueError: %s",msg)
-        self.raise_ValueError_exception(msg)
+        raise ValueError(msg)
+
+    def raise_TypeError_exception(self, message) -> None:
+        msg = str(message)
+        self.internal_logger.exception("TypeError: %s",msg)
+        if self.client_logger:
+            self.client_logger.error("TypeError: %s",msg)
+        raise TypeError(msg)
 
     def _write_info_to_console(self, message: str, *args) -> None:
         if self.client_logger and self.logToConsole:
@@ -128,6 +135,9 @@ class LaserMind:
         refresh_token = None
         self.logToFile = logToFile
         self.logToConsole = logToConsole
+
+        self.internal_logger, self.client_logger = build_loggers(logToConsole=logToConsole)
+
         if pathToRefreshTokenFile:
             if os.path.exists(pathToRefreshTokenFile):
 
@@ -220,7 +230,7 @@ class LaserMind:
                 self.raise_ValueError_exception("The total number of variables must be between 10-10000")
             commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
         else:
-            raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
+            self.raise_ValueError_exception("You must provide either a QUBO matrix or a QUBO edge list")
 
         commandInput[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
         return commandInput, int(varCount)
@@ -245,7 +255,7 @@ class LaserMind:
             iid = self.apiClient.upload_command_input(commandInput, inputPath)
             return iid, varCount
         except requests.exceptions.ConnectionError as e:
-            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud. !!!!!")
         except Exception as e:
             self.raise_exception(e)
 
@@ -285,7 +295,7 @@ class LaserMind:
             result = self.get_solution_sync(response)
             return result
         except requests.exceptions.ConnectionError as e:
-            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+            self.raise_exceptionn("!!!!! No access to LightSolver Cloud. !!!!!")
         except Exception as e:
             self.raise_exception(e)
 
@@ -451,7 +461,7 @@ class LaserMind:
             command_input[MessageKeys.QUBO_EDGE_LIST] = edge_list
 
         else:
-            raise (ValueError("You must provide either a QUBO matrix or a QUBO edge list"))
+            self.raise_ValueError_exception("You must provide either a QUBO matrix or a QUBO edge list")
 
         try:
             iid = self.apiClient.upload_command_input(command_input, input_path)
@@ -466,15 +476,15 @@ class LaserMind:
         data_input = {}
 
         if matrix_data is  None:
-            raise(TypeError("The input matrix must be not empty"))
+            self.raise_TypeError_exception("The input matrix must be not empty")
         elif edge_list is not None:
-            raise (TypeError("Edge List not supported as coup_matrix input"))
+            self.raise_TypeError_exception("Edge List not supported as coup_matrix input")
 
         if type(matrix_data) != numpy.ndarray:
-            raise(TypeError("The input must be a numpy array"))
+            self.raise_TypeError_exception("The input must be a numpy array")
 
         if matrix_data.dtype != numpy.complex64:
-            raise(TypeError("The input must complex64 type"))
+            self.raise_TypeError_exception("The input must complex64 type")
 
         data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
         var_count = len(matrix_data)
@@ -581,72 +591,72 @@ class LaserMind:
         data_input = {}
 
         if matrix_data is  None:
-            raise(TypeError("The input matrix must be not empty"))
+            self.raise_TypeError_exception("The input matrix must be not empty")
 
         if type(matrix_data) != numpy.ndarray:
-            raise(TypeError("The input must be a numpy array"))
+            self.raise_TypeError_exception("The input must be a numpy array")
 
         if matrix_data.dtype != numpy.complex64:
-            raise(TypeError("The input must complex64 type"))
+            self.raise_TypeError_exception("The input must complex64 type")
 
         data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
         var_count = len(matrix_data)
 
         if initial_states_vector is not None:
             if initial_states_vector is not None and num_runs != 1 :
-                raise ValueError("initial_states_vector already consist number or runs:{initial_states_vector.shape}")
+                self.raise_ValueError_exception("initial_states_vector already consist number or runs:{initial_states_vector.shape}")
             if not isinstance(initial_states_vector, numpy.ndarray):
-                raise ValueError("initial_states_vector must be a numpy array")
+                self.raise_ValueError_exception("initial_states_vector must be a numpy array")
             for i, arr in enumerate(initial_states_vector):
                 if not isinstance(arr, numpy.ndarray):
-                    raise ValueError(f"Element {i} of initial_states_vector  is not a numpy array")
+                    self.raise_ValueError_exception(f"Element {i} of initial_states_vector  is not a numpy array")
                 if arr.dtype != numpy.complex64:
-                    raise ValueError(f"Element {i} of initial_states_vector is not of dtype numpy.complex64")
+                    self.raise_ValueError_exception(f"Element {i} of initial_states_vector is not of dtype numpy.complex64")
                 if arr.shape[0] != var_count:
-                    raise ValueError(f"Element {i} of initial_states_vector does not have size of {var_count}")
+                    self.raise_ValueError_exception(f"Element {i} of initial_states_vector does not have size of {var_count}")
             data_input["initial_states"] = initial_states_vector
 
         if initial_states_vector is not None and initial_states_seed >= 0 :
-            raise(TypeError("The input must provide only one of seed or vector"))
+            self.raise_TypeError_exception("The input must provide only one of seed or vector")
         data_input["initial_states_seed"] = initial_states_seed
 
         if initial_states_vector is not None and num_runs > 1:
-            raise(TypeError("For SIM LPU: same initial state vector, run multiple times, will return exactly the same result every time."))
+            self.raise_TypeError_exception("For SIM LPU: same initial state vector, run multiple times, will return exactly the same result every time.")
 
         if num_runs < 1 or num_runs > 10000:
-            raise(TypeError("The num_runs:{num_runs} in input must be in range 1-10K"))
+            self.raise_TypeError_exception("The num_runs:{num_runs} in input must be in range 1-10K")
         data_input[MessageKeys.LPU_NUM_RUNS] = num_runs
 
         if num_iterations < 1 or num_iterations > 200000:
-            raise(TypeError("The num_iterations:{num_iterations} in  input must be in range 1-200K"))
+            self.raise_TypeError_exception("The num_iterations:{num_iterations} in  input must be in range 1-200K")
         data_input["num_iterations"] = num_iterations
 
         if timeout < 1 or timeout > 200000:
-            raise(TypeError("The timeout:{timeout} in  input must be in range 1-14400 seconds"))
+            self.raise_TypeError_exception("The timeout:{timeout} in  input must be in range 1-14400 seconds")
         data_input["timeout"] = timeout
 
         if rounds_per_record < 1 or rounds_per_record > num_iterations:
-            raise(TypeError("The rounds_per_record :{rounds_per_record} in  input must be in range from 1 to num_iterations:{num_iterations}:"))
+            self.raise_TypeError_exception("The rounds_per_record :{rounds_per_record} in  input must be in range from 1 to num_iterations:{num_iterations}:")
         data_input["rounds_per_record"] = rounds_per_record
 
         if gain_info_initial_gain < 0 :
-            raise(TypeError("The gain_info_initial_gain:{gain_info_initial_gain} in  input must be in range 0-inf "))
+            self.raise_TypeError_exception("The gain_info_initial_gain:{gain_info_initial_gain} in  input must be in range 0-inf ")
         data_input["gain_info_initial_gain"] = gain_info_initial_gain
 
         if gain_info_pump_max < 0:
-            raise(TypeError("The gain_info_pump_max:{gain_info_pump_max} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_pump_max:{gain_info_pump_max} in  input must be in range 0-inf")
         data_input["gain_info_pump_max"] = gain_info_pump_max
 
         if gain_info_pump_tau < 0:
-            raise(TypeError("The gain_info_pump_tau:{gain_info_pump_tau} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_pump_tau:{gain_info_pump_tau} in  input must be in range 0-inf")
         data_input["gain_info_pump_tau"] = gain_info_pump_tau
 
         if gain_info_pump_treshold < 0:
-            raise(TypeError("The gain_info_pump_treshold:{gain_info_pump_treshold} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_pump_treshold:{gain_info_pump_treshold} in  input must be in range 0-inf")
         data_input["gain_info_pump_treshold"] = gain_info_pump_treshold
 
         if gain_info_amplification_saturation <= 0:
-            raise(TypeError("The gain_info_amplification_saturation:{gain_info_amplification_saturation} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_amplification_saturation:{gain_info_amplification_saturation} in  input must be in range 0-inf")
         data_input["gain_info_amplification_saturation"] = gain_info_amplification_saturation
 
         try:
@@ -665,13 +675,13 @@ class LaserMind:
         data_input = {}
 
         if matrix_data is  None:
-            raise(TypeError("The input matrix must be not empty"))
+            self.raise_TypeError_exception("The input matrix must be not empty")
 
         if type(matrix_data) != numpy.ndarray:
-            raise(TypeError("The input must be a numpy array"))
+            self.raise_TypeError_exception("The input must be a numpy array")
 
         if matrix_data.dtype != numpy.complex64:
-            raise(TypeError("The input must complex64 type"))
+            self.raise_TypeError_exception("The input must complex64 type")
 
         data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
 

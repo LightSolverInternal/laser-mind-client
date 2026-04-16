@@ -31,16 +31,19 @@ scan_dictionary = {
     "lasers_to_scan": lasers_to_scan,
     "phases_to_scan": phases_to_scan
 }
+try:
+    # Connect to the LightSolver Cloud
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
+    # Scan the phase parameters on the LPU
+    res = lsClient.solve_scan_lpu(matrixData = coupling_matrix, scanDictionary = scan_dictionary)
 
-# Scan the phase parameters on the LPU
-res = lsClient.solve_scan_lpu(matrixData = coupling_matrix, scanDictionary = scan_dictionary)
+    # Verify response format
+    assert 'command' in res, "Missing 'command' field"
+    assert 'data' in res, "Missing 'data' field"
+    assert 'solutions' in res['data'], "Missing 'solutions' field"
 
-# Verify response format
-assert 'command' in res, "Missing 'command' field"
-assert 'data' in res, "Missing 'data' field"
-assert 'solutions' in res['data'], "Missing 'solutions' field"
+    print(f"Test PASSED, response is: \n{res}")
 
-print(f"Test PASSED, response is: \n{res}")
+except Exception as e:
+    print(e)

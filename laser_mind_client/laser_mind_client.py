@@ -49,21 +49,24 @@ def npz_b64_to_python(npz_b64: str) :
 from pathlib import Path
 
 
-def build_loggers(logToConsole: bool) -> tuple[logging.Logger, logging.Logger | None]:
-    log_file = Path("laser-mind.log")
 
-    # Internal logger: always writes to file
-    internal_logger = logging.getLogger("CLIENT.internal")
-    internal_logger.setLevel(logging.DEBUG)
-    internal_logger.propagate = False
-    internal_logger.handlers.clear()
+def build_loggers(logToConsole: bool, logToFile: bool = True) -> tuple[logging.Logger | None, logging.Logger | None]:
+    # Internal logger: file only, optional
+    internal_logger: logging.Logger | None = None
 
-    internal_file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    internal_file_handler.setLevel(logging.DEBUG)
-    internal_file_handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s", datefmt='%m/%d/%Y %H:%M:%S')
-    )
-    internal_logger.addHandler(internal_file_handler)
+    if logToFile:
+        log_file = Path("laser-mind.log")
+        internal_logger = logging.getLogger("CLIENT.internal")
+        internal_logger.setLevel(logging.DEBUG)
+        internal_logger.propagate = False
+        internal_logger.handlers.clear()
+
+        internal_file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        internal_file_handler.setLevel(logging.DEBUG)
+        internal_file_handler.setFormatter(
+            logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s", datefmt='%m/%d/%Y %H:%M:%S')
+        )
+        internal_logger.addHandler(internal_file_handler)
 
     # Client logger: console only, optional
     client_logger: logging.Logger | None = None
@@ -80,6 +83,7 @@ def build_loggers(logToConsole: bool) -> tuple[logging.Logger, logging.Logger | 
         client_logger.addHandler(console_handler)
 
     return internal_logger, client_logger
+
 def symmetrize(matrix):
         """
         Symmetrizes a given matrix in numpy array form
@@ -132,11 +136,13 @@ class LaserMind:
                  pathToRefreshTokenFile=None,
                  logToFile=True,
                  logToConsole=True):
+
         refresh_token = None
+
         self.logToFile = logToFile
         self.logToConsole = logToConsole
 
-        self.internal_logger, self.client_logger = build_loggers(logToConsole=logToConsole)
+        self.internal_logger, self.client_logger = build_loggers(logToConsole=self.logToConsole, logToFile=self.logToFile)
 
         if pathToRefreshTokenFile:
             if os.path.exists(pathToRefreshTokenFile):

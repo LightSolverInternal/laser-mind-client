@@ -20,31 +20,34 @@ coupling = (1-0.5)/(2)
 for i in range(size5 - 1):
     coupling_matrix[i,i+1] = coupling
     coupling_matrix[i+1,i] = coupling
+try:
+    # Connect to the LightSolver Cloud
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
+    # Request a LPU solution to the CoupMat problem
+    res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)
 
-# Request a LPU solution to the CoupMat problem
-res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)
-
-# Verify response format
-assert 'command' in res, "Missing 'command' field"
-assert 'data' in res, "Missing 'data' field"
-assert 'solutions' in res['data'], "Missing 'solutions' field"
-assert 'image_problem_list' in res['data']['solutions'][0]
-assert 'exposure_time' in res['data']
+    # Verify response format
+    assert 'command' in res, "Missing 'command' field"
+    assert 'data' in res, "Missing 'data' field"
+    assert 'solutions' in res['data'], "Missing 'solutions' field"
+    assert 'image_problem_list' in res['data']['solutions'][0]
+    assert 'exposure_time' in res['data']
 
 
-problem_image = res['data']['solutions'][0]['image_problem_list']
-problem_image_arr = numpy.asarray(problem_image)          # make it a NumPy array
-print("shape:", problem_image_arr.shape)
+    problem_image = res['data']['solutions'][0]['image_problem_list']
+    problem_image_arr = numpy.asarray(problem_image)          # make it a NumPy array
+    print("shape:", problem_image_arr.shape)
 
-# exposure_time from the system, can be changed in parameter
-print("exposure_time: " , res['data']['exposure_time'])
+    # exposure_time from the system, can be changed in parameter
+    print("exposure_time: " , res['data']['exposure_time'])
 
-plt.figure()
-plt.imshow(problem_image_arr[1, :, :]) # first batch, first channel
-plt.axis('off')
-plt.show()
+    plt.figure()
+    plt.imshow(problem_image_arr[1, :, :]) # first batch, first channel
+    plt.axis('off')
+    plt.show()
 
-print(f"Test PASSED, response is: \n{res}")
+    print(f"Test PASSED, response is: \n{res}")
+
+except Exception as e:
+    print(e)

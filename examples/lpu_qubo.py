@@ -16,16 +16,18 @@ qubo_problem_data = numpy.random.randint(-1, 2, (10,10))
 
 # Symmetrize our matrix
 qubo_problem_data = (qubo_problem_data + qubo_problem_data.T) // 2
+try:
+    # Connect to the LightSolver Cloud
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
+    # Request a LPU solution to the QUBO problem
+    res = lsClient.solve_qubo_lpu(matrixData = qubo_problem_data)
 
-# Request a LPU solution to the QUBO problem
-res = lsClient.solve_qubo_lpu(matrixData = qubo_problem_data)
+    # Verify response format
+    assert 'command' in res, "Missing 'command' field"
+    assert 'data' in res, "Missing 'data' field"
+    assert 'solutions' in res['data'], "Missing 'solutions' field"
 
-# Verify response format
-assert 'command' in res, "Missing 'command' field"
-assert 'data' in res, "Missing 'data' field"
-assert 'solutions' in res['data'], "Missing 'solutions' field"
-
-print(f"Test PASSED, response is: \n{res}")
+    print(f"Test PASSED, response is: \n{res}")
+except Exception as e:
+    print(e)

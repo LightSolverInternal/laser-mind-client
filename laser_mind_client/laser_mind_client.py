@@ -46,6 +46,44 @@ def npz_b64_to_python(npz_b64: str) :
                 out[key] = v
     return out
 
+from pathlib import Path
+
+
+
+def build_loggers(logToConsole: bool, logToFile: bool = True) -> tuple[logging.Logger | None, logging.Logger | None]:
+    # Internal logger: file only, optional
+    internal_logger: logging.Logger | None = None
+
+    if logToFile:
+        log_file = Path("laser-mind.log")
+        internal_logger = logging.getLogger("CLIENT.internal")
+        internal_logger.setLevel(logging.DEBUG)
+        internal_logger.propagate = False
+        internal_logger.handlers.clear()
+
+        internal_file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        internal_file_handler.setLevel(logging.DEBUG)
+        internal_file_handler.setFormatter(
+            logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s", datefmt='%m/%d/%Y %H:%M:%S')
+        )
+        internal_logger.addHandler(internal_file_handler)
+
+    # Client logger: console only, optional
+    client_logger: logging.Logger | None = None
+
+    if logToConsole:
+        client_logger = logging.getLogger("my_package.client")
+        client_logger.setLevel(logging.INFO)
+        client_logger.propagate = False
+        client_logger.handlers.clear()
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(logging.Formatter("%(message)s"))
+        client_logger.addHandler(console_handler)
+
+    return internal_logger, client_logger
+
 def symmetrize(matrix):
         """
         Symmetrizes a given matrix in numpy array form
@@ -63,26 +101,63 @@ class LaserMind:
     POLL_MAX_RETRIES = 100000
     POLL_DELAY_SECS = 0.5
 
+    def raise_exception(self, message) -> None:
+        msg = str(message)
+        self.internal_logger.exception(msg)
+        if self.client_logger:
+            self.client_logger.error(msg)
+        raise Exception(msg)
+
+    def raise_ValueError_exception(self, message) -> None:
+        msg = str(message)
+        self.internal_logger.exception("ValueError: %s",msg)
+        if self.client_logger:
+            self.client_logger.error("ValueError: %s",msg)
+        raise ValueError(msg)
+
+    def raise_TypeError_exception(self, message) -> None:
+        msg = str(message)
+        self.internal_logger.exception("TypeError: %s",msg)
+        if self.client_logger:
+            self.client_logger.error("TypeError: %s",msg)
+        raise TypeError(msg)
+
+    def _write_info_to_console(self, message: str, *args) -> None:
+        if self.client_logger and self.logToConsole:
+            self.client_logger.info(message, *args)
+
+    def _write_info_to_file(self, message: str, *args) -> None:
+        if self.internal_logger  and self.logToFile:
+            self.internal_logger.info(message, *args)
+
+
     def __init__(self,
                  userToken=None,
                  pathToRefreshTokenFile=None,
+                 logToFile=True,
                  logToConsole=True):
+
         refresh_token = None
+
+        self.logToFile = logToFile
+        self.logToConsole = logToConsole
+
+        self.internal_logger, self.client_logger = build_loggers(logToConsole=self.logToConsole, logToFile=self.logToFile)
+
         if pathToRefreshTokenFile:
             if os.path.exists(pathToRefreshTokenFile):
-                with open(pathToRefreshTokenFile) as file:
+
                     refresh_token = file.read()
             else:
-                raise Exception("The pathToRefreshTokenFile parameter is expected to point to a valid file.")
-
+                self.raise_exception("The pathToRefreshTokenFile parameter is expected to point to a valid file.")
+        self._write_info_to_console("Authenticating . . . ")
         try:
-            logging.info('LightSolver connection init started')
-            self.apiClient = LSAPIClient(usertoken = userToken, refresh_token = refresh_token, logToConsole = logToConsole)
-            logging.info('LightSolver connection init finished')
+            self.apiClient = LSAPIClient(usertoken = userToken, refresh_token = refresh_token, logToFile = logToFile, logToConsole = logToConsole)
+            self._write_info_to_console("✓ Succesfully connected")
         except requests.exceptions.ConnectionError as e:
-            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud. !!!!!")
         except Exception as e:
-                raise  e
+            self.raise_exception(e)
 
     def get_solution_by_id(self, solutionId, timestamp):
         """
@@ -91,8 +166,8 @@ class LaserMind:
         - `solutionId` : the solution id received when requesting a solution.
         - `timestamp` : the timestamp received when requesting a solution.
         """
-        result = self.apiClient.SendResultRequest(solutionId, timestamp)
-        return result
+        result, status  = self.apiClient.SendResultRequest(solutionId, timestamp)
+        return result, status
 
     def get_solution_sync(self, requestInfo):
         """
@@ -100,17 +175,34 @@ class LaserMind:
 
         - `requestInfo` : a dictionary containing 'id' and 'reqTime' keys needed for retrieving the solution.
         """
+
+        request_id = requestInfo["id"]
+        request_time = requestInfo["reqTime"]
+
+        self._write_info_to_file("getting solution: %s ...",f"{request_id}_{request_time}")
+
+        last_status = None
         for try_num in range(1, self.POLL_MAX_RETRIES):
-            result = self.get_solution_by_id(requestInfo['id'], requestInfo['reqTime'])
+            result, status = self.get_solution_by_id(request_id, request_time)
+
+            if status is not None and status != last_status:
+                self._write_info_to_file(
+                    "Solution status changed to %s, for %s_%s",
+                    status,
+                    request_id,
+                    request_time,
+                )
+                self._write_info_to_console("Solution status changed to %s", status)
+                last_status = status
+
             if result != None:
                 result["receivedTime"] = requestInfo["receivedTime"]
-                logging.info(f"got solution for {requestInfo}, try #{try_num}")
+                self._write_info_to_file(f"got solution for {requestInfo}, try #{try_num}")
+                self._write_info_to_console("✓ Solution received " )
                 return result
             time.sleep((self.POLL_DELAY_SECS))
 
-        logging.warning(f"got timeout for {requestInfo}")
-        raise FileNotFoundError(f"Exceeded max retries when attempting to find {requestInfo['id']}")
-
+        self.raise_exception(f"Exceeded max retries when attempting to find {requestInfo['id']}")
     def make_command_input(self, matrixData = None, edgeList = None, timeout = 10):
         """
         Creates the message payload for a request input.
@@ -120,7 +212,7 @@ class LaserMind:
         if matrixData is not None:
             varCount = len(matrixData)
             if varCount > 10000 or varCount < 10:
-                raise(ValueError("The total number of variables must be between 10-10000"))
+                self.raise_ValueError_exception("The total number of variables must be between 10-10000")
             if type(matrixData) == numpy.ndarray:
                 matrixData = symmetrize(matrixData)
                 if matrixData.dtype == numpy.float32 or matrixData.dtype == numpy.float64:
@@ -131,7 +223,7 @@ class LaserMind:
             else:
                 validationArr = [len(matrixData[i]) != varCount for i in range(varCount)]
                 if numpy.array(validationArr).any():
-                    raise(ValueError("The input must be a square matrix"))
+                    self.raise_ValueError_exception("The input must be a square matrix")
                 triuFlat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrixData)))
             commandInput[MessageKeys.QUBO_MATRIX] = triuFlat.tolist()
         elif edgeList is not None:
@@ -141,10 +233,10 @@ class LaserMind:
             else:
                 varCount = numpy.max(numpy.array(edgeList)[:,0:2])
             if varCount > 10000 or varCount < 10:
-                raise(ValueError("The total number of variables must be between 10-10000"))
+                self.raise_ValueError_exception("The total number of variables must be between 10-10000")
             commandInput[MessageKeys.QUBO_EDGE_LIST] = edgeList
         else:
-            raise Exception("You must provide either a QUBO matrix or a QUBO edge list")
+            self.raise_ValueError_exception("You must provide either a QUBO matrix or a QUBO edge list")
 
         commandInput[MessageKeys.ALGO_RUN_TIMEOUT] = timeout
         return commandInput, int(varCount)
@@ -169,9 +261,9 @@ class LaserMind:
             iid = self.apiClient.upload_command_input(commandInput, inputPath)
             return iid, varCount
         except requests.exceptions.ConnectionError as e:
-            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud. !!!!!")
         except Exception as e:
-                raise  e
+            self.raise_exception(e)
 
     def solve_qubo(self, matrixData = None, edgeList = None, inputPath = None, timeout = 10, waitForSolution = True):
         """
@@ -200,27 +292,31 @@ class LaserMind:
             MessageKeys.VAR_COUNT_KEY : varCount
             }
         try:
+            self._write_info_to_console("Submitting job..." )
             response = self.apiClient.SendCommandRequest(command_name, requestInput)
-            logging.info(f"got response {response}")
+            self._write_info_to_file("Submitting job done , response %s" , response)
+            self._write_info_to_console("Processing..." )
             if not waitForSolution:
                 return response
             result = self.get_solution_sync(response)
             return result
         except requests.exceptions.ConnectionError as e:
-            raise Exception("!!!!! No access to LightSolver Cloud. !!!!!")
+            self.raise_exceptionn("!!!!! No access to LightSolver Cloud. !!!!!")
         except Exception as e:
-                raise  e
+            self.raise_exception(e)
 
 
     def get_account_details(self):
         requestInput = {}
         try:
+            self._write_info_to_console("Submitting job..." )
             response = self.apiClient.SendCommandRequest("get_account_details", requestInput)
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:
-            raise  e
-        logging.info(f"got response {response}")
+            self.raise_exception(e)
+        self._write_info_to_file("Submitting job done , response %s" , response)
+        self._write_info_to_console("Processing..." )
         return response
 
 
@@ -238,13 +334,16 @@ class LaserMind:
             }
 
         try:
+            self._write_info_to_console("Submitting job..." )
             response = self.apiClient.SendCommandRequest("LPUSolver_QUBOFull", requestInput)
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
-        logging.info(f"got response {response}")
+        self._write_info_to_file("Submitting job done , response %s" , response)
+        self._write_info_to_console("Processing..." )
+
         if not waitForSolution:
             return response
 
@@ -252,9 +351,9 @@ class LaserMind:
             result = self.get_solution_sync(response)
             return result
         except requests.exceptions.ConnectionError   as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
 
     def solve_coupling_matrix_lpu(self,
@@ -289,13 +388,16 @@ class LaserMind:
              requestInput[MessageKeys.LPU_COUPMAT_EXPOSURE_MUS] =  int(exposure_time)
 
         try:
+            self._write_info_to_console("Submitting job..." )
             response = self.apiClient.SendCommandRequest("LPUSolver_Coupmat", requestInput)
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
-        logging.info(f"got response {response}")
+        self._write_info_to_file("Submitting job done , response %s" , response)
+        self._write_info_to_console("Processing..." )
+
         if not waitForSolution:
             return response
 
@@ -333,9 +435,9 @@ class LaserMind:
             return result
 
         except requests.exceptions.ConnectionError   as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
     def upload_lpu_qubo_input(self, matrix_data = None, edge_list = None, input_path = None):
         command_input = {}
@@ -352,7 +454,7 @@ class LaserMind:
             else:
                 validationArr = [len(matrix_data[i]) != var_count for i in range(var_count)]
                 if numpy.array(validationArr).any():
-                    raise(ValueError("The input must be a square matrix"))
+                    self.raise_ValueError_exception("The input must be a square matrix")
                 triu_flat = numpy_array_to_triu_flat(symmetrize(numpy.array(matrix_data)))
             command_input[MessageKeys.QUBO_MATRIX] = triu_flat.tolist()
 
@@ -365,30 +467,30 @@ class LaserMind:
             command_input[MessageKeys.QUBO_EDGE_LIST] = edge_list
 
         else:
-            raise (ValueError("You must provide either a QUBO matrix or a QUBO edge list"))
+            self.raise_ValueError_exception("You must provide either a QUBO matrix or a QUBO edge list")
 
         try:
             iid = self.apiClient.upload_command_input(command_input, input_path)
             return iid, int(var_count)
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
 
     def upload_lpu_coupmat_input(self, matrix_data = None, edge_list = None, input_path = None):
         data_input = {}
 
         if matrix_data is  None:
-            raise(TypeError("The input matrix must be not empty"))
+            self.raise_TypeError_exception("The input matrix must be not empty")
         elif edge_list is not None:
-            raise (TypeError("Edge List not supported as coup_matrix input"))
+            self.raise_TypeError_exception("Edge List not supported as coup_matrix input")
 
         if type(matrix_data) != numpy.ndarray:
-            raise(TypeError("The input must be a numpy array"))
+            self.raise_TypeError_exception("The input must be a numpy array")
 
         if matrix_data.dtype != numpy.complex64:
-            raise(TypeError("The input must complex64 type"))
+            self.raise_TypeError_exception("The input must complex64 type")
 
         data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
         var_count = len(matrix_data)
@@ -400,9 +502,9 @@ class LaserMind:
             return iid, int(var_count)
 
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
 
     def solve_coupling_matrix_sim_lpu(self,
@@ -444,13 +546,16 @@ class LaserMind:
             }
 
         try:
+            self._write_info_to_console("Submitting job..." )
             response = self.apiClient.SendCommandRequest("SIMLPUSolver_Coupmat", requestInput)
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
-        logging.info(f"got response {response}")
+        self._write_info_to_file("Submitting job done , response %s" , response)
+        self._write_info_to_console("Processing..." )
+
         if not waitForSolution:
             return response
 
@@ -470,9 +575,9 @@ class LaserMind:
 
             return result
         except requests.exceptions.ConnectionError   as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
 
     def upload_sim_lpu_coupmat_input(self,
@@ -492,72 +597,72 @@ class LaserMind:
         data_input = {}
 
         if matrix_data is  None:
-            raise(TypeError("The input matrix must be not empty"))
+            self.raise_TypeError_exception("The input matrix must be not empty")
 
         if type(matrix_data) != numpy.ndarray:
-            raise(TypeError("The input must be a numpy array"))
+            self.raise_TypeError_exception("The input must be a numpy array")
 
         if matrix_data.dtype != numpy.complex64:
-            raise(TypeError("The input must complex64 type"))
+            self.raise_TypeError_exception("The input must complex64 type")
 
         data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
         var_count = len(matrix_data)
 
         if initial_states_vector is not None:
             if initial_states_vector is not None and num_runs != 1 :
-                raise ValueError("initial_states_vector already consist number or runs:{initial_states_vector.shape}")
+                self.raise_ValueError_exception("initial_states_vector already consist number or runs:{initial_states_vector.shape}")
             if not isinstance(initial_states_vector, numpy.ndarray):
-                raise ValueError("initial_states_vector must be a numpy array")
+                self.raise_ValueError_exception("initial_states_vector must be a numpy array")
             for i, arr in enumerate(initial_states_vector):
                 if not isinstance(arr, numpy.ndarray):
-                    raise ValueError(f"Element {i} of initial_states_vector  is not a numpy array")
+                    self.raise_ValueError_exception(f"Element {i} of initial_states_vector  is not a numpy array")
                 if arr.dtype != numpy.complex64:
-                    raise ValueError(f"Element {i} of initial_states_vector is not of dtype numpy.complex64")
+                    self.raise_ValueError_exception(f"Element {i} of initial_states_vector is not of dtype numpy.complex64")
                 if arr.shape[0] != var_count:
-                    raise ValueError(f"Element {i} of initial_states_vector does not have size of {var_count}")
+                    self.raise_ValueError_exception(f"Element {i} of initial_states_vector does not have size of {var_count}")
             data_input["initial_states"] = initial_states_vector
 
         if initial_states_vector is not None and initial_states_seed >= 0 :
-            raise(TypeError("The input must provide only one of seed or vector"))
+            self.raise_TypeError_exception("The input must provide only one of seed or vector")
         data_input["initial_states_seed"] = initial_states_seed
 
         if initial_states_vector is not None and num_runs > 1:
-            raise(TypeError("For SIM LPU: same initial state vector, run multiple times, will return exactly the same result every time."))
+            self.raise_TypeError_exception("For SIM LPU: same initial state vector, run multiple times, will return exactly the same result every time.")
 
         if num_runs < 1 or num_runs > 10000:
-            raise(TypeError("The num_runs:{num_runs} in input must be in range 1-10K"))
+            self.raise_TypeError_exception("The num_runs:{num_runs} in input must be in range 1-10K")
         data_input[MessageKeys.LPU_NUM_RUNS] = num_runs
 
         if num_iterations < 1 or num_iterations > 200000:
-            raise(TypeError("The num_iterations:{num_iterations} in  input must be in range 1-200K"))
+            self.raise_TypeError_exception("The num_iterations:{num_iterations} in  input must be in range 1-200K")
         data_input["num_iterations"] = num_iterations
 
         if timeout < 1 or timeout > 200000:
-            raise(TypeError("The timeout:{timeout} in  input must be in range 1-14400 seconds"))
+            self.raise_TypeError_exception("The timeout:{timeout} in  input must be in range 1-14400 seconds")
         data_input["timeout"] = timeout
 
         if rounds_per_record < 1 or rounds_per_record > num_iterations:
-            raise(TypeError("The rounds_per_record :{rounds_per_record} in  input must be in range from 1 to num_iterations:{num_iterations}:"))
+            self.raise_TypeError_exception("The rounds_per_record :{rounds_per_record} in  input must be in range from 1 to num_iterations:{num_iterations}:")
         data_input["rounds_per_record"] = rounds_per_record
 
         if gain_info_initial_gain < 0 :
-            raise(TypeError("The gain_info_initial_gain:{gain_info_initial_gain} in  input must be in range 0-inf "))
+            self.raise_TypeError_exception("The gain_info_initial_gain:{gain_info_initial_gain} in  input must be in range 0-inf ")
         data_input["gain_info_initial_gain"] = gain_info_initial_gain
 
         if gain_info_pump_max < 0:
-            raise(TypeError("The gain_info_pump_max:{gain_info_pump_max} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_pump_max:{gain_info_pump_max} in  input must be in range 0-inf")
         data_input["gain_info_pump_max"] = gain_info_pump_max
 
         if gain_info_pump_tau < 0:
-            raise(TypeError("The gain_info_pump_tau:{gain_info_pump_tau} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_pump_tau:{gain_info_pump_tau} in  input must be in range 0-inf")
         data_input["gain_info_pump_tau"] = gain_info_pump_tau
 
         if gain_info_pump_treshold < 0:
-            raise(TypeError("The gain_info_pump_treshold:{gain_info_pump_treshold} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_pump_treshold:{gain_info_pump_treshold} in  input must be in range 0-inf")
         data_input["gain_info_pump_treshold"] = gain_info_pump_treshold
 
         if gain_info_amplification_saturation <= 0:
-            raise(TypeError("The gain_info_amplification_saturation:{gain_info_amplification_saturation} in  input must be in range 0-inf"))
+            self.raise_TypeError_exception("The gain_info_amplification_saturation:{gain_info_amplification_saturation} in  input must be in range 0-inf")
         data_input["gain_info_amplification_saturation"] = gain_info_amplification_saturation
 
         try:
@@ -567,22 +672,22 @@ class LaserMind:
             return iid, int(var_count)
 
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
 
     def upload_solve_scan_lpu_input(self, matrix_data = None, scan_dictionary = None, input_path = None):
         data_input = {}
 
         if matrix_data is  None:
-            raise(TypeError("The input matrix must be not empty"))
+            self.raise_TypeError_exception("The input matrix must be not empty")
 
         if type(matrix_data) != numpy.ndarray:
-            raise(TypeError("The input must be a numpy array"))
+            self.raise_TypeError_exception("The input must be a numpy array")
 
         if matrix_data.dtype != numpy.complex64:
-            raise(TypeError("The input must complex64 type"))
+            self.raise_TypeError_exception("The input must complex64 type")
 
         data_input[MessageKeys.COUPMAT_MATRIX] = matrix_data
 
@@ -596,9 +701,9 @@ class LaserMind:
             return iid, int(var_count)
 
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
 
     def solve_scan_lpu( self,
@@ -634,13 +739,16 @@ class LaserMind:
 
 
         try:
+            self._write_info_to_console("Submitting job..." )
             response = self.apiClient.SendCommandRequest("LPUSolver_ScanProblem", requestInput)
         except requests.exceptions.ConnectionError as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)
 
-        logging.info(f"got response {response}")
+        self._write_info_to_file("Submitting job done , response %s" , response)
+        self._write_info_to_console("Processing..." )
+
         if not waitForSolution:
             return response
 
@@ -681,6 +789,6 @@ class LaserMind:
 
             return result
         except requests.exceptions.ConnectionError   as e:
-            raise  Exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+            self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
         except Exception as e:
-            raise  e
+            self.raise_exception(e)

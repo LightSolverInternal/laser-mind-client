@@ -50,39 +50,36 @@ from pathlib import Path
 
 
 
-def build_loggers(logToConsole: bool, logToFile: bool = True) -> tuple[logging.Logger | None, logging.Logger | None]:
-    # Internal logger: file only, optional
+def build_file_logger():
     internal_logger: logging.Logger | None = None
+    log_file = Path("laser-mind.log")
+    internal_logger = logging.getLogger("CLIENT.internal")
+    internal_logger.setLevel(logging.DEBUG)
+    internal_logger.propagate = False
+    internal_logger.handlers.clear()
 
-    if logToFile:
-        log_file = Path("laser-mind.log")
-        internal_logger = logging.getLogger("CLIENT.internal")
-        internal_logger.setLevel(logging.DEBUG)
-        internal_logger.propagate = False
-        internal_logger.handlers.clear()
+    internal_file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    internal_file_handler.setLevel(logging.DEBUG)
+    internal_file_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s", datefmt='%m/%d/%Y %H:%M:%S')
+    )
+    internal_logger.addHandler(internal_file_handler)
+    return internal_logger
 
-        internal_file_handler = logging.FileHandler(log_file, encoding="utf-8")
-        internal_file_handler.setLevel(logging.DEBUG)
-        internal_file_handler.setFormatter(
-            logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s", datefmt='%m/%d/%Y %H:%M:%S')
-        )
-        internal_logger.addHandler(internal_file_handler)
 
-    # Client logger: console only, optional
+def build_console_logger():
     client_logger: logging.Logger | None = None
+    client_logger = logging.getLogger("my_package.client")
+    client_logger.setLevel(logging.INFO)
+    client_logger.propagate = False
+    client_logger.handlers.clear()
 
-    if logToConsole:
-        client_logger = logging.getLogger("my_package.client")
-        client_logger.setLevel(logging.INFO)
-        client_logger.propagate = False
-        client_logger.handlers.clear()
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    client_logger.addHandler(console_handler)
+    return client_logger
 
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter("%(message)s"))
-        client_logger.addHandler(console_handler)
-
-    return internal_logger, client_logger
 
 def symmetrize(matrix):
         """
@@ -135,14 +132,28 @@ class LaserMind:
                  userToken=None,
                  pathToRefreshTokenFile=None,
                  logToFile=True,
-                 logToConsole=True):
+                 logToConsole=True,
+                 file_logger = None,
+                 console_logger =None):
 
         refresh_token = None
 
         self.logToFile = logToFile
         self.logToConsole = logToConsole
 
-        self.internal_logger, self.client_logger = build_loggers(logToConsole=self.logToConsole, logToFile=self.logToFile)
+        if not file_logger:
+            # Internal logger: file only, optional
+            file_logger: logging.Logger | None = None
+            if logToFile:
+                file_logger = build_file_logger()
+        self.internal_logger = file_logger
+
+        if not console_logger:
+            # Client logger: console only, optional
+            console_logger: logging.Logger | None = None
+            if logToConsole:
+                console_logger = build_console_logger()
+        self.client_logger = console_logger
 
         if pathToRefreshTokenFile:
             if os.path.exists(pathToRefreshTokenFile):
@@ -168,6 +179,90 @@ class LaserMind:
         """
         result, status  = self.apiClient.SendResultRequest(solutionId, timestamp)
         return result, status
+
+    def post_processing (self, result):
+        if "method" in result['data']:
+            if result['data']["method"] == "solve_coupling_matrix_lpu":
+                num_runs = result['data']["num_runs"]
+                solutions_result = npz_b64_to_python (result['data']['solutions'])
+                result['data']['solutions'] = []
+                for idx in range (num_runs):
+                    solution = {'phase_problem':solutions_result['phase_problem'][idx],
+                                'phase_reference':solutions_result['phase_reference'][idx],
+                                'energy_problem':solutions_result['energy_problem'][idx],
+                                'energy_reference':solutions_result['energy_reference'][idx],
+                                'contrast_problem':solutions_result['contrast_problem'][idx],
+                                'contrast_reference':solutions_result['contrast_reference'][idx],
+                                'image_problem_list':solutions_result['image_problem_list'][idx],
+                                'image_reference_list':solutions_result['image_reference_list'][idx],
+                                'snr_problem':solutions_result['snr_problem'][idx],
+                                'snr_reference':solutions_result['snr_reference'][idx],
+                                'solverRunningTime': result['data']["solver_running_time"]
+                                }
+                    result['data']['solutions'].append(solution)
+
+                if 'effective_coupmat' in solutions_result:
+                    result['effective_coupmat'] = solutions_result['effective_coupmat']
+
+                if "warnings" in solutions_result:
+                    result["warnings"] = solutions_result["warnings"]
+
+                if "validation_warnings" in solutions_result:
+                    result["validation_warnings"] = solutions_result["validation_warnings"]
+
+                return result
+
+            elif result['data']["method"] == "solve_scan_lpu":
+                solutions_result = npz_b64_to_python (result['data']['solutions'])
+
+                result['data']['solutions'] = []
+                num_of_steps = result['data']['num_of_steps']
+                for idx in range (result['data']["num_runs"]):
+                    run_solutions = []
+                    for step in range (num_of_steps):
+                        solution_step = {'phase_problem':solutions_result['phase_problem'][idx][step],
+                                    'phase_reference':solutions_result['phase_reference'][idx][step],
+                                    'energy_problem':solutions_result['energy_problem'][idx][step],
+                                    'energy_reference':solutions_result['energy_reference'][idx][step],
+                                    'contrast_problem':solutions_result['contrast_problem'][idx][step],
+                                    'contrast_reference':solutions_result['contrast_reference'][idx][step],
+                                    'image_problem_list':solutions_result['image_problem_list'][idx][step],
+                                    'image_reference_list':solutions_result['image_reference_list'][idx][step],
+                                    'snr_problem':solutions_result['snr_problem'][idx][step],
+                                    'snr_reference':solutions_result['snr_reference'][idx][step]
+                                    }
+                        run_solutions.append(solution_step)
+                    result['data']['solutions'].append(run_solutions)
+
+                if 'effective_coupmat' in solutions_result:
+                    result['effective_coupmat'] = solutions_result['effective_coupmat']
+
+                if "warnings" in solutions_result:
+                    result["warnings"] = solutions_result["warnings"]
+
+                if "validation_warnings" in result['data']:
+                    result["validation_warnings"] = result['data']["validation_warnings"]
+
+                if "exposure_time" in result['data']:
+                    result["exposure_time"] = result['data']["exposure_time"]
+
+                return result
+
+            elif result['data']["method"]  == "solve_coupling_matrix_sim_lpu":
+                solutions_result = npz_b64_to_python (result['data']['result'])
+                # Reconstruct arrays
+                result['data']['result'] = {}
+                result['data']['result']['start_states'] = solutions_result['start_states'].tolist()
+                result['data']['result']['final_states'] = solutions_result['final_states'].tolist()
+                result['data']['result']['final_gains']  = solutions_result['final_gains'].tolist()
+                result['data']['result']['record_states']= solutions_result['record_states']
+                result['data']['result']['record_gains'] = solutions_result['record_gains']
+                result['data']['result']['num_runs']     = solutions_result["num_runs"]
+                result['data']['result']['solver_time'] = solutions_result['solver_time']
+                return result
+
+
+        return result
 
     def get_solution_sync(self, requestInfo):
         """
@@ -199,10 +294,13 @@ class LaserMind:
                 result["receivedTime"] = requestInfo["receivedTime"]
                 self._write_info_to_file(f"got solution for {requestInfo}, try #{try_num}")
                 self._write_info_to_console("✓ Solution received " )
-                return result
+
+                return self.post_processing(result)
             time.sleep((self.POLL_DELAY_SECS))
 
         self.raise_exception(f"Exceeded max retries when attempting to find {requestInfo['id']}")
+
+
     def make_command_input(self, matrixData = None, edgeList = None, timeout = 10):
         """
         Creates the message payload for a request input.
@@ -400,38 +498,8 @@ class LaserMind:
 
         if not waitForSolution:
             return response
-
         try:
-
             result = self.get_solution_sync(response)
-            solutions_result = npz_b64_to_python (result['data']['solutions'])
-
-            result['data']['solutions'] = []
-
-            for idx in range (num_runs):
-                solution = {'phase_problem':solutions_result['phase_problem'][idx],
-                            'phase_reference':solutions_result['phase_reference'][idx],
-                            'energy_problem':solutions_result['energy_problem'][idx],
-                            'energy_reference':solutions_result['energy_reference'][idx],
-                            'contrast_problem':solutions_result['contrast_problem'][idx],
-                            'contrast_reference':solutions_result['contrast_reference'][idx],
-                            'image_problem_list':solutions_result['image_problem_list'][idx],
-                            'image_reference_list':solutions_result['image_reference_list'][idx],
-                            'snr_problem':solutions_result['snr_problem'][idx],
-                            'snr_reference':solutions_result['snr_reference'][idx],
-                            'solverRunningTime': result['data']["solver_running_time"]
-                            }
-                result['data']['solutions'].append(solution)
-
-            if 'effective_coupmat' in solutions_result:
-                result['effective_coupmat'] = solutions_result['effective_coupmat']
-
-            if "warnings" in solutions_result:
-                result["warnings"] = solutions_result["warnings"]
-
-            if "validation_warnings" in solutions_result:
-                result["validation_warnings"] = solutions_result["validation_warnings"]
-
             return result
 
         except requests.exceptions.ConnectionError   as e:
@@ -561,18 +629,6 @@ class LaserMind:
 
         try:
             result = self.get_solution_sync(response)
-            solutions_result = npz_b64_to_python (result['data']['result'])
-
-            # Reconstruct arrays
-            result['data']['result'] = {}
-            result['data']['result']['start_states'] = solutions_result['start_states'].tolist()
-            result['data']['result']['final_states'] = solutions_result['final_states'].tolist()
-            result['data']['result']['final_gains']  = solutions_result['final_gains'].tolist()
-            result['data']['result']['record_states']= solutions_result['record_states']
-            result['data']['result']['record_gains'] = solutions_result['record_gains']
-            result['data']['result']['num_runs']     = num_runs
-            result['data']['result']['solver_time'] = solutions_result['solver_time']
-
             return result
         except requests.exceptions.ConnectionError   as e:
             self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
@@ -754,39 +810,6 @@ class LaserMind:
 
         try:
             result = self.get_solution_sync(response)
-            solutions_result = npz_b64_to_python (result['data']['solutions'])
-
-            result['data']['solutions'] = []
-            num_of_steps = scanDictionary['num_of_steps']
-            for idx in range (num_runs):
-                run_solutions = []
-                for step in range (num_of_steps):
-                    solution_step = {'phase_problem':solutions_result['phase_problem'][idx][step],
-                                'phase_reference':solutions_result['phase_reference'][idx][step],
-                                'energy_problem':solutions_result['energy_problem'][idx][step],
-                                'energy_reference':solutions_result['energy_reference'][idx][step],
-                                'contrast_problem':solutions_result['contrast_problem'][idx][step],
-                                'contrast_reference':solutions_result['contrast_reference'][idx][step],
-                                'image_problem_list':solutions_result['image_problem_list'][idx][step],
-                                'image_reference_list':solutions_result['image_reference_list'][idx][step],
-                                'snr_problem':solutions_result['snr_problem'][idx][step],
-                                'snr_reference':solutions_result['snr_reference'][idx][step]
-                                }
-                    run_solutions.append(solution_step)
-                result['data']['solutions'].append(run_solutions)
-
-            if 'effective_coupmat' in solutions_result:
-                result['effective_coupmat'] = solutions_result['effective_coupmat']
-
-            if "warnings" in solutions_result:
-                result["warnings"] = solutions_result["warnings"]
-
-            if "validation_warnings" in result['data']:
-                result["validation_warnings"] = result['data']["validation_warnings"]
-
-            if "exposure_time" in result['data']:
-                result["exposure_time"] = result['data']["exposure_time"]
-
             return result
         except requests.exceptions.ConnectionError   as e:
             self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")

@@ -248,7 +248,7 @@ class LaserMind:
 
                 return result
 
-            elif result["method"] == "solve_coupling_matrix_sim_lpu":
+            elif result['data']["method"]  == "solve_coupling_matrix_sim_lpu":
                 solutions_result = npz_b64_to_python (result['data']['result'])
                 # Reconstruct arrays
                 result['data']['result'] = {}
@@ -498,9 +498,7 @@ class LaserMind:
 
         if not waitForSolution:
             return response
-
         try:
-
             result = self.get_solution_sync(response)
             return result
 

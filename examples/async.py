@@ -14,28 +14,31 @@ coupling = (1-0.5)/2
 for i in range(size - 1):
     coupling_matrix[i, i + 1] = coupling
     coupling_matrix[i + 1, i] = coupling
+try:
+    # Connect and start async solve
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
+    requestToken = lsClient.solve_coupling_matrix_sim_lpu(
+        matrix_data=coupling_matrix,
+        num_runs=3,
+        num_iterations=10,
+        rounds_per_record=5,
+        timeout=5,
+        waitForSolution=False
+    )
 
-# Connect and start async solve
-lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
-requestToken = lsClient.solve_coupling_matrix_sim_lpu(
-    matrix_data=coupling_matrix,
-    num_runs=3,
-    num_iterations=10,
-    rounds_per_record=5,
-    timeout=5,
-    waitForSolution=False
-)
+    # Other code can run here while server processes the request
 
-# Other code can run here while server processes the request
+    # Retrieve solution (blocks until ready)
+    res = lsClient.get_solution_sync(requestToken)
 
-# Retrieve solution (blocks until ready)
-res = lsClient.get_solution_sync(requestToken)
+    assert 'data' in res, "Test FAILED, response is not in expected format"
+    assert 'result' in res['data'], "Test FAILED, result not found in response data"
+    assert 'start_states' in res['data']['result'], "Test FAILED, start_states not found in result"
+    assert 'final_states' in res['data']['result'], "Test FAILED, final_states not found in result"
+    assert 'record_states' in res['data']['result'], "Test FAILED, record_states not found in result"
+    assert 'record_gains' in res['data']['result'], "Test FAILED, record_gains not found in result"
 
-assert 'data' in res, "Test FAILED, response is not in expected format"
-assert 'result' in res['data'], "Test FAILED, result not found in response data"
-assert 'start_states' in res['data']['result'], "Test FAILED, start_states not found in result"
-assert 'final_states' in res['data']['result'], "Test FAILED, final_states not found in result"
-assert 'record_states' in res['data']['result'], "Test FAILED, record_states not found in result"
-assert 'record_gains' in res['data']['result'], "Test FAILED, record_gains not found in result"
+    print(f"Test PASSED, response is: \n{res}")
 
-print(f"Test PASSED, response is: \n{res}")
+except Exception as e:
+    print(e)

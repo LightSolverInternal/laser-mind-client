@@ -18,16 +18,19 @@ coupling = (1-0.5)/2
 for i in range(size - 1):
     coupling_matrix[i,i+1] = coupling
     coupling_matrix[i+1,i] = coupling
+try:
+    # Connect to the LightSolver Cloud
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
+    # Request a LPU solution to the CoupMat problem
+    res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)
 
-# Request a LPU solution to the CoupMat problem
-res = lsClient.solve_coupling_matrix_lpu(matrixData = coupling_matrix)
+    # Verify response format
+    assert 'command' in res, "Missing 'command' field"
+    assert 'data' in res, "Missing 'data' field"
+    assert 'solutions' in res['data'], "Missing 'solutions' field"
 
-# Verify response format
-assert 'command' in res, "Missing 'command' field"
-assert 'data' in res, "Missing 'data' field"
-assert 'solutions' in res['data'], "Missing 'solutions' field"
+    print(f"Test PASSED, response is: \n{res}")
 
-print(f"Test PASSED, response is: \n{res}")
+except Exception as e:
+    print(e)

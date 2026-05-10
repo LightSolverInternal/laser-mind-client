@@ -261,6 +261,9 @@ class LaserMind:
                 result['data']['result']['solver_time'] = solutions_result['solver_time']
                 return result
 
+            elif result['data']["method"] == "solve_magentax":
+                solutions_result = npz_b64_to_python (result['data']['result'])
+                return solutions_result
 
         return result
 
@@ -813,5 +816,66 @@ class LaserMind:
             return result
         except requests.exceptions.ConnectionError   as e:
             self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+        except Exception as e:
+            self.raise_exception(e)
+
+
+    def solve_magentax(self,
+                        input_payload,
+                        waitForSolution = True):
+
+        try:
+            self.validate_magentax_numpy_dict(input_payload)
+        except Exception as e:
+            self.raise_exception(e)
+
+        iid, varCount = self.upload_magentax_input(input_payload)
+
+        requestInput = {
+            MessageKeys.QUBO_INPUT_PATH : iid,
+            MessageKeys.VAR_COUNT_KEY : varCount
+            }
+
+        try:
+            self._write_info_to_console("Submitting job..." )
+            response = self.apiClient.SendCommandRequest("Solver_MAGENTAX", requestInput)
+        except requests.exceptions.ConnectionError as e:
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+        except Exception as e:
+            self.raise_exception(e)
+
+        self._write_info_to_file("Submitting job done , response %s" , response)
+        self._write_info_to_console("Processing..." )
+
+        if not waitForSolution:
+            return response
+        try:
+            result = self.get_solution_sync(response)
+            return result
+        except requests.exceptions.ConnectionError   as e:
+            self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+        except Exception as e:
+            self.raise_exception(e)
+
+
+    def validate_magentax_numpy_dict(self, input_payload: dict):
+        for key, value in input_payload.items():
+            if not isinstance(value, (numpy.generic, numpy.ndarray)):
+                raise TypeError(
+                    f"Parameter '{key}' is not a numpy type. "
+                    f"Got type: {type(value).__name__}"
+                )
+
+
+    def upload_magentax_input(self, numpy_dict, input_path=None):
+        """Upload a numpy-typed magentax input dictionary. Returns (iid, var_count)."""
+        var_count = int(numpy_dict["n_cols"]) * int(numpy_dict["n_rows"])
+        try:
+            command_input = {}
+            command_input['npz_payload'] = numpy_to_npz_b64(**numpy_dict)
+            iid = self.apiClient.upload_command_input(command_input, input_path)
+            return iid, int(var_count)
+        except requests.exceptions.ConnectionError as e:
+            self.raise_exception("!!!!! No access to LightSolver Cloud, URL PROVIDER server !!!!!")
         except Exception as e:
             self.raise_exception(e)

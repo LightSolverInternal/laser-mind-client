@@ -1,7 +1,14 @@
 import numpy as np
-from laser_mind_client import LaserMind
-from lightsolver_lib import *
 import os
+
+from laser_mind_client import LaserMind
+from lightsolver_lib import (
+    XYModelParams,
+    best_energy_search_xy,
+    coupling_matrix_xy,
+    generate_animation,
+    probmat_qubo_to_ising,
+)
 
 # Example: Constructing the coupling matrix for the QUBO problem
 
@@ -14,13 +21,14 @@ Q = np.array([[ -4,   4,   0,   0,   0],
 offset_QUBO = 8
 
 # The corresponding Ising matrix:
-I, offset_Ising = probmat_qubo_to_ising(Q, offset_QUBO)
+I, offset_Ising = probmat_qubo_to_ising(Q)
+offset_Ising += offset_QUBO
 
 print('Ising matrix:')
 print(I)
 print('Ising offset: ', offset_Ising)
 
-coupling_matrix = coupling_matrix_xy(I, XYmodelParams())
+coupling_matrix = coupling_matrix_xy(I, XYModelParams())
 
 print('Coupling Matrix:')
 print(coupling_matrix)
@@ -44,10 +52,10 @@ record_gains = result['data']['result']['record_gains']     # dims: num_records 
 outWave = record_states[:, 0, :]    # iterations x lasers (since rounds_per_record = 1)
 
 # Generating animation:
-generateAnimation(outWave, save=False)
+generate_animation(outWave, save=False)
 
-# Search for the best state:
-best_state, best_energy = best_energy_search_xy(outWave[:, 0, -1], I)
+# Search for the best state using the final recorded state of all lasers.
+best_state, best_energy = best_energy_search_xy(outWave[-1, :], I)
 
 # Transform Ising best state to QUBO best state:
 QUBO_best_state = (best_state + 1) / 2

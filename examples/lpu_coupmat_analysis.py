@@ -2,7 +2,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from laser_mind_client import LaserMind
-from lightsolver_lib import *
+from lightsolver_lib import coupling_matrix_xy, XYModelParams, embed_coupmat, analyze_sol_XY
 
 
 # Ising matrix:

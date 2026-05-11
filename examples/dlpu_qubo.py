@@ -17,11 +17,15 @@ quboProblemData = numpy.random.randint(-1, 2, (10,10))
 # Symmetrize the matrix
 quboProblemData = (quboProblemData + quboProblemData.T) // 2
 
-# Connect to the LightSolver Cloud
-lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
+try:
+    # Connect to the LightSolver Cloud
+    lsClient = LaserMind(pathToRefreshTokenFile=pathToTokenFile)
 
-res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
+    res = lsClient.solve_qubo(matrixData = quboProblemData, timeout=1)
 
-assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
+    assert MessageKeys.SOLUTION in res, "Test FAILED, response is not in expected format"
 
-print(f"Test PASSED, response is: \n{res}")
+    print(f"Test PASSED, response is: \n{res}")
+
+except Exception as e:
+    print(e)

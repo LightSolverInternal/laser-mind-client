@@ -157,7 +157,7 @@ class LaserMind:
 
         if pathToRefreshTokenFile:
             if os.path.exists(pathToRefreshTokenFile):
-
+                with open(pathToRefreshTokenFile) as file:
                     refresh_token = file.read()
             else:
                 self.raise_exception("The pathToRefreshTokenFile parameter is expected to point to a valid file.")

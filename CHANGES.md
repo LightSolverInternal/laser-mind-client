@@ -4,32 +4,38 @@ All notable changes to laser mind client be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-## [1.2.0] - 2026-05-10
+
+## [0.57.0] - 2026-05-10
+
+### Changed
+- fix lightsolver_lib dependency
+
+## [0.56.3] - 2026-05-10
 
 ### Changed
 - added support for Magenta-x solver
 
-## [1.1.1] - 2026-04-26
+## [0.56.2] - 2026-04-26
 
 ### Changed
 - added file logger and console logger as optional parameter to constructor
 
-## [1.1.0] - 2026-04-16
+## [0.56.1] - 2026-04-16
 
 ### Changed
 - Changed logger , added file logger and console logger
 
-## [1.0.2] - 2025-12-29
+## [0.56.0] - 2025-12-29
 
 ### Changed
 - Added dependencies and new param names
 
-## [1.0.1] - 2025-12-29
+## [0.55.0] - 2025-12-29
 
 ### Changed
 - Fixed  numpy numbers Serialization
 
-## [1.0.0] - 2025-12-29
+## [0.54.0] - 2025-12-29
 
 ### Changed
 - Internal numpy Serialization

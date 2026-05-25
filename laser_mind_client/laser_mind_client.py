@@ -181,6 +181,8 @@ class LaserMind:
         return result, status
 
     def post_processing (self, result):
+        if 'data' not in result:
+            return result
         if "method" in result['data']:
             if result['data']["method"] == "solve_coupling_matrix_lpu":
                 num_runs = result['data']["num_runs"]

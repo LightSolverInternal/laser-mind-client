@@ -423,6 +423,29 @@ class LaserMind:
         return response
 
 
+    def get_lpu_solver_status(self):
+        requestInput = {}
+        try:
+            self._write_info_to_console("Submitting job..." )
+            response = self.apiClient.SendCommandRequest("Solver_Status_LPU", requestInput)
+        except requests.exceptions.ConnectionError as e:
+            self.raise_exception("!!!!! No access to LightSolver Cloud, WEB server !!!!!")
+        except Exception as e:
+            self.raise_exception(e)
+
+        self._write_info_to_file("Submitting job done , responce %s" , response)
+        self._write_info_to_console("Processing..." )
+
+        try:
+            result = self.get_solution_sync(response)
+            return result
+        except requests.exceptions.ConnectionError   as e:
+            self.raise_exception("!!!!! No access to LightSolver Cloud, SOLUTION server !!!!!")
+        except Exception as e:
+            self.raise_exception(e)
+        return response
+
+
     def solve_qubo_lpu(self, matrixData = None, edgeList = None, waitForSolution = True, inputPath = None, num_runs = 1 ):
         if inputPath == None:
             iid, varCount = self.upload_lpu_qubo_input(matrix_data = matrixData, edge_list = edgeList)

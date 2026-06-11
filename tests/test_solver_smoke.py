@@ -80,7 +80,7 @@ def test_dlpu() -> None:
 
 def test_lpu_cyan() -> None:
     client = _client()
-    res = client.solve_coupling_matrix_lpu(matrixData=_small_coupmat(), num_runs=1)
+    res = client.solve_lpu_cyan(matrixData=_small_coupmat(), num_runs=1)
     assert "data" in res
     assert "solutions" in res["data"]
     assert len(res["data"]["solutions"]) == 1
@@ -89,7 +89,7 @@ def test_lpu_cyan() -> None:
 
 def test_lpu_cyan_x() -> None:
     client = _client()
-    res = client.solve_coupling_matrix_sim_lpu(
+    res = client.solve_lpu_cyan_x(
         matrix_data=_small_coupmat(),
         num_runs=1,
         num_iterations=5,

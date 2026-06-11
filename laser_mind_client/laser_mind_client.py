@@ -482,18 +482,18 @@ class LaserMind:
             self.raise_exception(e)
 
 
-    def solve_coupling_matrix_lpu(self,
-                                  matrixData = None,
-                                  edgeList = None,
-                                  waitForSolution = True,
-                                  inputPath = None,
-                                  num_runs = 1,
-                                  average_over = 1,
-                                  exposure_time= None,
-                                  num_neighbors = 1,
-                                  effective_coupmat_translation_accuracy = 10.0,
-                                  effective_coupmat_translation_time = 0.0
-                                  ):
+    def solve_lpu_cyan(self,
+                       matrixData = None,
+                       edgeList = None,
+                       waitForSolution = True,
+                       inputPath = None,
+                       num_runs = 1,
+                       average_over = 1,
+                       exposure_time= None,
+                       num_neighbors = 1,
+                       effective_coupmat_translation_accuracy = 10.0,
+                       effective_coupmat_translation_time = 0.0
+                       ):
         if inputPath == None:
             iid, varCount = self.upload_lpu_coupmat_input(matrix_data= matrixData, edge_list = edgeList)
         else:
@@ -603,21 +603,21 @@ class LaserMind:
             self.raise_exception(e)
 
 
-    def solve_coupling_matrix_sim_lpu(self,
-                                      matrix_data  = None,
-                                      initial_states_seed = -1,
-                                      initial_states_vector = None,
-                                      num_runs = 1,
-                                      num_iterations = 10000,
-                                      rounds_per_record  = 100,
-                                      timeout  = 5,
-                                      waitForSolution = True,
-                                      gain_info_initial_gain = 1.8 ,
-                                      gain_info_pump_max = 3 ,
-                                      gain_info_pump_tau = 100.0 ,
-                                      gain_info_pump_treshold = 1.8 ,
-                                      gain_info_amplification_saturation = 1.0 ,
-                                      inputPath = None):
+    def solve_lpu_cyan_x(self,
+                         matrix_data  = None,
+                         initial_states_seed = -1,
+                         initial_states_vector = None,
+                         num_runs = 1,
+                         num_iterations = 10000,
+                         rounds_per_record  = 100,
+                         timeout  = 5,
+                         waitForSolution = True,
+                         gain_info_initial_gain = 1.8 ,
+                         gain_info_pump_max = 3 ,
+                         gain_info_pump_tau = 100.0 ,
+                         gain_info_pump_treshold = 1.8 ,
+                         gain_info_amplification_saturation = 1.0 ,
+                         inputPath = None):
         if inputPath == None:
             iid, varCount = self.upload_sim_lpu_coupmat_input(  matrix_data,
                                                                 initial_states_seed = initial_states_seed,
@@ -790,18 +790,18 @@ class LaserMind:
             self.raise_exception(e)
 
 
-    def solve_scan_lpu( self,
-                        matrixData = None,
-                        scanDictionary = None,
-                        waitForSolution = True,
-                        inputPath = None,
-                        num_runs = 1,
-                        average_over = 1,
-                        exposure_time= None,
-                        num_neighbors = 1,
-                        effective_coupmat_translation_accuracy = 10.0,
-                        effective_coupmat_translation_time = 0.0
-                        ):
+    def solve_lpu_cyan_scan( self,
+                             matrixData = None,
+                             scanDictionary = None,
+                             waitForSolution = True,
+                             inputPath = None,
+                             num_runs = 1,
+                             average_over = 1,
+                             exposure_time= None,
+                             num_neighbors = 1,
+                             effective_coupmat_translation_accuracy = 10.0,
+                             effective_coupmat_translation_time = 0.0
+                             ):
         if inputPath == None:
             iid, varCount = self.upload_solve_scan_lpu_input( matrix_data = matrixData, scan_dictionary = scanDictionary )
         else:
@@ -846,8 +846,8 @@ class LaserMind:
 
 
     def solve_magentax(self,
-                        input_payload,
-                        waitForSolution = True):
+                       input_payload,
+                       waitForSolution = True):
 
         try:
             self.validate_magentax_numpy_dict(input_payload)
@@ -891,6 +891,12 @@ class LaserMind:
                     f"Got type: {type(value).__name__}"
                 )
 
+    # Backward-compatible aliases
+    def solve_coupling_matrix_lpu(self, *args, **kwargs):
+        return self.solve_lpu_cyan(*args, **kwargs)
+
+    def solve_scan_lpu(self, *args, **kwargs):
+        return self.solve_lpu_cyan_scan(*args, **kwargs)
 
     def upload_magentax_input(self, numpy_dict, input_path=None):
         """Upload a numpy-typed magentax input dictionary. Returns (iid, var_count)."""

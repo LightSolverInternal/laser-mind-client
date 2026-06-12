@@ -105,7 +105,7 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -e . pytest
-          pytest tests/test_solver_smoke.py -vv -rA --tb=long | tee solver-smoke.log
+          pytest tests/test_solver_smoke.py tests/test_top_level_api.py -vv -rA --tb=long | tee solver-smoke.log
           smoke_exit_code=$?
           if [ "$smoke_exit_code" -eq 0 ]; then
             smoke_status="PASSED"

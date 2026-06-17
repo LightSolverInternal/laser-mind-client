@@ -884,12 +884,44 @@ class LaserMind:
 
 
     def validate_magentax_numpy_dict(self, input_payload: dict):
-        for key, value in input_payload.items():
+        if not isinstance(input_payload, dict):
+            raise TypeError(
+                f"input_payload must be dict, got: {type(input_payload).__name__}"
+            )
+
+        required_keys = {"input", "metadata"}
+        payload_keys = set(input_payload.keys())
+
+        missing = required_keys - payload_keys
+        if missing:
+            raise TypeError(f"Missing sub dictionary(ies): {', '.join(sorted(missing))}")
+
+        extra = payload_keys - required_keys
+        if extra:
+            raise TypeError(f"Unexpected sub dictionary(ies): {', '.join(sorted(extra))}")
+
+        input_part = input_payload["input"]
+        metadata_part = input_payload["metadata"]
+
+        if not isinstance(input_part, dict):
+            raise TypeError(f"'input' must be dict, got: {type(input_part).__name__}")
+        if not isinstance(metadata_part, dict):
+            raise TypeError(f"'metadata' must be dict, got: {type(metadata_part).__name__}")
+
+        for key, value in input_part.items():
             if not isinstance(value, (numpy.generic, numpy.ndarray)):
                 raise TypeError(
-                    f"Parameter '{key}' is not a numpy type. "
+                    f"Parameter '{key}' in 'input' must be a numpy type. "
                     f"Got type: {type(value).__name__}"
                 )
+
+        for key, value in metadata_part.items():
+            if not isinstance(value, str):
+                raise TypeError(
+                    f"Parameter '{key}' in 'metadata' must be str. "
+                    f"Got type: {type(value).__name__}"
+                )
+
 
     # Backward-compatible aliases
     def solve_coupling_matrix_lpu(self, *args, **kwargs):
@@ -900,7 +932,7 @@ class LaserMind:
 
     def upload_magentax_input(self, numpy_dict, input_path=None):
         """Upload a numpy-typed magentax input dictionary. Returns (iid, var_count)."""
-        var_count = int(numpy_dict["n_cols"]) * int(numpy_dict["n_rows"])
+        var_count = 1000
         try:
             command_input = {}
             command_input['npz_payload'] = numpy_to_npz_b64(**numpy_dict)

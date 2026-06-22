@@ -83,10 +83,65 @@ jobs:
             exit 1
           fi
 
+  solver-smoke:
+    runs-on: [ lightsolver-github-runner ]
+    needs: enforce-changelog-update
+    outputs:
+      smoke_status: ${{ steps.smoke.outputs.smoke_status }}
+      smoke_exit_code: ${{ steps.smoke.outputs.smoke_exit_code }}
+    steps:
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Run solver smoke tests (non-blocking)
+        id: smoke
+        shell: bash
+        run: |
+          set +e
+          export PYTHONUNBUFFERED=1
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -e . pytest
+          pytest tests/test_solver_smoke.py tests/test_top_level_api.py -vv -rA --tb=long | tee solver-smoke.log
+          smoke_exit_code=$?
+          if [ "$smoke_exit_code" -eq 0 ]; then
+            smoke_status="PASSED"
+          elif [ "$smoke_exit_code" -eq 5 ]; then
+            smoke_status="SKIPPED"
+          else
+            smoke_status="FAILED"
+          fi
+          echo "smoke_status=$smoke_status" >> "$GITHUB_OUTPUT"
+          echo "smoke_exit_code=$smoke_exit_code" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Solver smoke summary"
+            echo "- status: $smoke_status"
+            echo "- exit_code: $smoke_exit_code"
+            echo "- details: see solver-smoke step log (includes failed test names and full traceback with --tb=long)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+  report-solver-smoke:
+    name: Solver Smoke Result [${{ needs.solver-smoke.outputs.smoke_status || 'UNKNOWN' }}]
+    runs-on: [ lightsolver-github-runner ]
+    needs: solver-smoke
+    if: always()
+    steps:
+      - name: Print smoke result summary
+        shell: bash
+        run: |
+          echo "==========================================="
+          echo "Solver smoke result: ${{ needs.solver-smoke.outputs.smoke_status || 'UNKNOWN' }}"
+          echo "Solver smoke exit code: ${{ needs.solver-smoke.outputs.smoke_exit_code || 'N/A' }}"
+          echo "==========================================="
+
   # The environment isn't cleared between jobs on a single runner, so we can use `github-actions` repository we cloned
   build-python-packages:
     runs-on: [ lightsolver-github-runner ]
-    needs: enforce-changelog-update
+    needs: report-solver-smoke
     env:
       AWS_REGION: "eu-central-1"
       CODE_ARTIFACT_REPOSITORY_NAME: "general-pypi-repo"

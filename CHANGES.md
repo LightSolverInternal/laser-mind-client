@@ -4,6 +4,11 @@ All notable changes to laser mind client be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.63.0] - 2026-11-05
+
+### Changed
+- Python 3.9 or newer is now required.
+
 ## [0.62.0] - 2026-11-05
 
 ### Changed

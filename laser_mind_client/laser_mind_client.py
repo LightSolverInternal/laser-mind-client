@@ -12,6 +12,9 @@ from laser_mind_client_meta import MessageKeys
 
 import base64
 import io
+import pickle
+import zipfile
+from numpy.lib import format as npy_format
 
 def numpy_to_npz_b64(**matrices) -> str:
     # usage: numpy_to_npz_b64(phase=phase, amplitude=ampl)
@@ -26,6 +29,51 @@ def numpy_to_npz_b64(**matrices) -> str:
     return out_matrix_npz_b64
 
 
+# Only numpy's own array/scalar/dtype reconstructors may be resolved while
+# unpickling object arrays inside an uploaded .npz. Anything else (os.system,
+# builtins.eval, ...) is rejected, so a crafted payload cannot execute code.
+_NPZ_ALLOWED_GLOBALS = {
+    ("numpy.core.multiarray", "_reconstruct"),
+    ("numpy._core.multiarray", "_reconstruct"),
+    ("numpy.core.multiarray", "scalar"),
+    ("numpy._core.multiarray", "scalar"),
+    ("numpy.core.numeric", "_frombuffer"),
+    ("numpy._core.numeric", "_frombuffer"),
+    ("numpy", "ndarray"),
+    ("numpy", "dtype"),
+    ("builtins", "complex"),
+}
+
+
+class _NpzRestrictedUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if (module, name) in _NPZ_ALLOWED_GLOBALS:
+            return super().find_class(module, name)
+        raise pickle.UnpicklingError(f"Disallowed type in npz payload: {module}.{name}")
+
+
+def _safe_load_npz_bytes(raw: bytes) -> dict:
+    """Load every array of an .npz blob without allowing arbitrary pickles."""
+    out = {}
+    with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+        for member in zf.namelist():
+            key = member[:-4] if member.endswith(".npy") else member
+            with zf.open(member) as f:
+                version = npy_format.read_magic(f)
+                if version == (1, 0):
+                    _, _, dtype = npy_format.read_array_header_1_0(f)
+                elif version == (2, 0):
+                    _, _, dtype = npy_format.read_array_header_2_0(f)
+                else:
+                    raise ValueError(f"Unsupported npy format version {version} for '{key}'")
+                if dtype.hasobject:
+                    out[key] = _NpzRestrictedUnpickler(f).load()
+                    continue
+            with zf.open(member) as f:
+                out[key] = npy_format.read_array(f, allow_pickle=False)
+    return out
+
+
 def npz_b64_to_python(npz_b64: str) :
     """
     Decode base64-encoded .npz created by numpy_to_npz_b64()
@@ -34,16 +82,13 @@ def npz_b64_to_python(npz_b64: str) :
     if not npz_b64:
         return {}
     raw = base64.b64decode(npz_b64)
-    buf = io.BytesIO(raw)
     out = {}
-    with numpy.load(buf, allow_pickle=True) as data:
-        for key in data.files:
-            v = data[key]
-            # Restore Python scalar if it was saved as 0-D ndarray
-            if isinstance(v, numpy.ndarray) and v.ndim == 0:
-                out[key] = v.item()
-            else:
-                out[key] = v
+    for key, v in _safe_load_npz_bytes(raw).items():
+        # Restore Python scalar if it was saved as 0-D ndarray
+        if isinstance(v, numpy.ndarray) and v.ndim == 0:
+            out[key] = v.item()
+        else:
+            out[key] = v
     return out
 
 from pathlib import Path

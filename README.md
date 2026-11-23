@@ -13,3 +13,4 @@ pip install laser-mind-client
 For usage guides and examples, see:
 
 - https://kb.lightsolver.com
+
